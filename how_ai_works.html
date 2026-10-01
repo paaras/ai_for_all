@@ -617,14 +617,12 @@ nav.bar button { font-size: 14px; }
     <div class="text">
       <ol class="steps">
         <li>Describe what you want the program to do, as clearly as you can.</li>
-        <li>Read the code the AI gives you. Ask it to explain any line you don't understand.</li>
         <li>Run it.</li>
         <li>Test it with different inputs, including strange ones.</li>
         <li>If something breaks, paste the error back into the AI and ask it to fix it.</li>
       </ol>
       <p style="font-size:0.85em;margin-bottom:6px">Example request:</p>
       <div class="prompt" id="s22prompt">Write a short Python program that runs in the console. It should pick a random number from 1 to 20 and let me keep guessing until I get it, telling me if each guess is too high or too low.</div>
-      <div class="row" style="margin-top:8px"><button class="btn" id="s22copy">Copy request</button><a href="https://www.programiz.com/python-programming/online-compiler/" target="_blank" rel="noopener" style="font-size:0.8em">Open Programiz as a backup</a></div>
     </div>
     <div class="panel stack">
       <textarea class="editor" id="s22code" spellcheck="false" aria-label="Python code"></textarea>
@@ -1294,7 +1292,7 @@ while True:
   }
   function stop(msg) { runId++; if (pendingReject) { const r = pendingReject; pendingReject = null; r(new Error("stopped")); } $$("input", out).forEach(i => i.remove()); if (msg) write(msg, "sys"); }
   $("#s22run").onclick = () => {
-    if (typeof Sk === "undefined") { write("The Python engine could not load. Check the internet connection, or use the Programiz link instead.\n", "err"); return; }
+    if (typeof Sk === "undefined") { write("The Python engine could not load. Check the internet connection and reload the page.\n", "err"); return; }
     stop(); out.textContent = ""; const my = ++runId;
     write("Running...\n", "sys");
     Sk.configure({
@@ -1307,7 +1305,6 @@ while True:
   };
   $("#s22stop").onclick = () => stop("\nStopped.\n");
   $("#s22clear").onclick = () => { out.textContent = ""; };
-  $("#s22copy").onclick = async () => { const t = $("#s22prompt").textContent; try { await navigator.clipboard.writeText(t); $("#s22copy").textContent = "Copied"; setTimeout(() => $("#s22copy").textContent = "Copy request", 1500); } catch (e) { const r = document.createRange(); r.selectNodeContents($("#s22prompt")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } };
   write('Press "Run" to start the program.\n', "sys");
 };
 
