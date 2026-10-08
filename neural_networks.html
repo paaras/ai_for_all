@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Neural Networks and Building with Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+:root {
+  --bg: #ffffff; --fg: #111111; --muted: #5b5f66; --line: #d7dae0; --soft: #f3f4f6;
+  --accent: #1d4ed8; --accent-soft: #e5edff; --good: #15803d; --good-soft: #e3f5e8;
+  --bad: #b91c1c; --bad-soft: #fde8e8; --hl: #fff2b3; --orange: #d97706;
+  --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --body: clamp(16px, 0.9vw + 8px, 23px); --small: 0.8em;
+  color-scheme: light;
+}
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: var(--body); line-height: 1.5; }
+* { box-sizing: border-box; }
+#deck { height: calc(100% - 56px - env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
+.slide { display: none; max-width: 1320px; margin: 0 auto; padding-block: clamp(20px, 4vh, 48px) 32px; padding-inline: clamp(16px, 4vw, 64px); }
+.slide.active { display: block; }
+.slide h1 { font-size: clamp(28px, 2.2vw + 12px, 50px); line-height: 1.15; font-weight: 700; margin: 0 0 0.7em; text-wrap: balance; letter-spacing: -0.01em; }
+.cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(20px, 3vw, 56px); align-items: start; }
+.cols.even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.text p { margin: 0 0 0.8em; max-width: 36em; }
+.text p:last-child { margin-bottom: 0; }
+.text ul, .text ol { margin: 0 0 0.8em; padding-left: 1.2em; }
+.text li { margin-bottom: 0.35em; }
+.try { color: var(--muted); font-size: var(--small); }
+.cap { color: var(--muted); font-size: var(--small); margin: 0.5em 0 0; }
+@media (max-width: 900px) { .cols, .cols.even { grid-template-columns: minmax(0, 1fr); } }
+.title-slide { padding-top: 18vh; }
+.title-slide h1 { font-size: clamp(40px, 5vw + 10px, 90px); margin-bottom: 0.4em; }
+.title-slide p { max-width: 34em; }
+
+.panel { border: 1px solid var(--line); border-radius: 10px; padding: clamp(14px, 1.4vw, 22px); min-width: 0; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button.btn { font: inherit; font-size: 0.85em; padding: 0.45em 0.95em; border: 1.5px solid var(--fg); background: var(--bg); color: var(--fg); border-radius: 7px; cursor: pointer; }
+button.btn:hover { background: var(--soft); }
+button.btn.primary { background: var(--fg); color: var(--bg); }
+button.btn.primary:hover { background: #333; }
+button.btn:disabled { opacity: 0.4; cursor: default; }
+button.btn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+input[type=text], textarea, select { font: inherit; font-size: 0.9em; border: 1.5px solid var(--line); border-radius: 7px; padding: 0.4em 0.6em; background: var(--bg); color: var(--fg); max-width: 100%; }
+input[type=text]:focus, textarea:focus, select:focus { border-color: var(--accent); outline: none; }
+input[type=range] { accent-color: var(--accent); width: 100%; }
+label.sl { display: grid; grid-template-columns: 7.5em minmax(0, 1fr) 3em; gap: 10px; align-items: center; font-size: 0.85em; }
+label.sl output { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--mono); }
+.big { font-size: 1.25em; }
+.muted { color: var(--muted); }
+.small { font-size: 0.85em; }
+svg text { font-family: var(--sans); }
+canvas { display: block; touch-action: none; }
+
+.bars { display: flex; flex-direction: column; gap: 6px; }
+.barrow { display: grid; grid-template-columns: minmax(4em, 10em) minmax(0, 1fr) 3.6em; gap: 10px; align-items: center; font-size: 0.85em; }
+.barrow .bl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barrow .bt { height: 1.1em; background: var(--soft); border-radius: 4px; overflow: hidden; }
+.barrow .bf { display: block; height: 100%; background: #9aa3b2; border-radius: 4px; transition: width 0.3s ease; }
+.barrow .bv { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.barrow.hl .bf { background: var(--accent); }
+.barrow.hl .bl { font-weight: 600; }
+.barrow.badbar .bf { background: var(--bad); }
+.barrow.goodbar .bf { background: var(--good); }
+
+table.t { border-collapse: collapse; width: 100%; font-size: 0.85em; }
+table.t th, table.t td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+table.t th { font-weight: 600; }
+.ok { color: var(--good); font-weight: 700; }
+.no { color: var(--bad); font-weight: 700; }
+
+/* toggles */
+.tog { font: inherit; font-size: 0.85em; padding: 0.4em 0.8em; border: 1.5px solid var(--line); background: var(--bg); border-radius: 999px; cursor: pointer; color: var(--fg); }
+.tog.on { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+
+/* slide 2 emails */
+.emails { display: flex; flex-direction: column; gap: 6px; }
+.email { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 0.82em; }
+.email .who { color: var(--muted); font-size: 0.85em; }
+.email .verdict { font-size: 0.85em; text-align: right; white-space: nowrap; }
+.email.right { border-color: #b7dfc3; }
+.email.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.rules { display: flex; flex-direction: column; gap: 4px; font-size: 0.85em; }
+.rules label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.rules input { width: 1.1em; height: 1.1em; accent-color: var(--accent); }
+
+/* cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(15em, 1fr)); gap: 12px; }
+.card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.card h3 { margin: 0 0 4px; font-size: 1em; }
+.card p { margin: 0; font-size: 0.85em; color: var(--muted); }
+
+/* digit pad */
+.pad { border: 2px solid var(--fg); border-radius: 10px; background: #fff; width: 100%; max-width: 280px; aspect-ratio: 1; cursor: crosshair; }
+.mini8 { display: grid; grid-template-columns: repeat(8, 1fr); gap: 1px; width: 96px; border: 1px solid var(--line); }
+.mini8 i { aspect-ratio: 1; display: block; }
+.heat { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; width: 100%; max-width: 220px; }
+.heat i { aspect-ratio: 1; display: block; border-radius: 2px; }
+
+/* robot */
+.grid6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; width: 100%; max-width: 320px; }
+.grid6 div { aspect-ratio: 1; background: var(--soft); border-radius: 4px; display: grid; place-items: center; font-size: 1.3em; position: relative; }
+.grid6 div.wall { background: #444; }
+.grid6 div.trail { background: var(--accent-soft); }
+.prog { display: flex; flex-wrap: wrap; gap: 4px; min-height: 2.2em; border: 1px dashed var(--line); border-radius: 8px; padding: 6px; }
+.prog span { font-size: 0.75em; background: var(--soft); border-radius: 5px; padding: 2px 7px; }
+.prog span.now { background: var(--hl); font-weight: 700; }
+
+/* code + console */
+.code { font-family: var(--mono); background: var(--soft); border-radius: 8px; padding: 12px 14px; white-space: pre; overflow-x: auto; font-size: 0.85em; }
+.console { font-family: var(--mono); font-size: 0.8em; background: #111; color: #f2f2f2; border-radius: 8px; padding: 12px; min-height: 12em; max-height: 18em; overflow-y: auto; white-space: pre-wrap; }
+.console input { font: inherit; background: transparent; border: 0; border-bottom: 1px solid #888; color: #fff; outline: none; width: 5em; padding: 0; }
+.numgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.numgrid button { font: inherit; font-size: 0.95em; padding: 0.5em 0; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; cursor: pointer; }
+.numgrid button.low { background: #dbeafe; border-color: #93c5fd; color: #555; }
+.numgrid button.high { background: #fde2c8; border-color: #f5b27a; color: #555; }
+.numgrid button.win { background: var(--good); border-color: var(--good); color: #fff; font-weight: 700; }
+.appbox { border: 1px solid var(--line); border-radius: 14px; padding: 16px; background: linear-gradient(#f8fafc, #eef2ff); }
+.applbl { font-size: 1.05em; font-weight: 700; margin-bottom: 4px; }
+
+iframe.view { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.weather { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-height: 6em; }
+.weather .temp { font-size: 2.2em; font-weight: 700; line-height: 1.1; }
+.dogimg { width: 100%; max-height: 220px; object-fit: cover; border-radius: 10px; display: block; }
+.prompt-out { width: 100%; min-height: 16em; font-family: var(--mono); font-size: 0.75em; line-height: 1.5; background: var(--soft); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { font: inherit; font-size: 0.75em; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+.chips button:hover { background: var(--soft); }
+.example { border-left: 4px solid var(--line); padding: 6px 12px; margin: 6px 0; font-size: 0.9em; }
+.example.goodx { border-color: var(--good); }
+.example.badx { border-color: var(--bad); }
+details summary { cursor: pointer; font-size: 0.85em; color: var(--muted); }
+.cmp { font-size: 0.85em; }
+
+nav.bar { position: fixed; left: 0; right: 0; bottom: 0; height: calc(56px + env(safe-area-inset-bottom, 0px)); padding: 0 16px env(safe-area-inset-bottom, 0px); border-top: 1px solid var(--line); background: var(--bg); display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; }
+nav.bar .prog-line { position: absolute; top: -1px; left: 0; height: 2px; background: var(--fg); transition: width 0.3s; }
+nav.bar #count { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); }
+nav.bar button { font-size: 14px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<main id="deck">
+
+<!-- 1 -->
+<section class="slide title-slide">
+  <h1>Neural Networks</h1>
+  <div class="text">
+    <p>Last week we saw how large language models predict the next word. This week we'll zoom in on the part that makes it work.</p>
+    <p class="try">Use the arrow keys or the buttons at the bottom to move between slides.</p>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="slide" data-init="s2">
+  <h1>Two ways to make a computer smart</h1>
+  <div class="cols">
+    <div class="text">
+      <p><b>Way 1:</b> people write all the rules by hand. For example: "If an email says FREE, it is spam."</p>
+      <p><b>Way 2:</b> the computer figures out the rules by looking at lots of examples. This is what neural networks do.</p>
+      <p>Hand-written rules work for simple cases, but the real world keeps finding ways around them.</p>
+      <p class="try">Try it: check rules to build a spam filter that gets every email right. Then press "New emails arrive".</p>
+    </div>
+    <div class="panel stack">
+      <div class="rules" id="s2rules"></div>
+      <div class="row"><b id="s2score"></b><span class="muted small" id="s2batchname"></span></div>
+      <div class="emails" id="s2emails"></div>
+      <div class="row"><button class="btn primary" id="s2next">New emails arrive</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="slide" data-init="s3">
+  <h1>The idea came from the brain</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Your brain is made of cells called neurons.</p>
+      <p>A neuron receives small signals from other neurons. If enough signals arrive at about the same time, it fires and sends a signal of its own to the next neurons.</p>
+      <p>Your brain has about 86 billion neurons, and each one connects to thousands of others.</p>
+      <p class="try">Try it: send signals into the neuron. One at a time fades away. Several close together make it fire.</p>
+    </div>
+    <div class="panel stack">
+      <svg id="s3svg" viewBox="0 0 600 280" style="width:100%;display:block" role="img" aria-label="A neuron receiving signals"></svg>
+      <div class="row">
+        <button class="btn" data-in="0">Signal 1</button>
+        <button class="btn" data-in="1">Signal 2</button>
+        <button class="btn" data-in="2">Signal 3</button>
+        <button class="btn primary" id="s3all">All three at once</button>
+      </div>
+      <div class="small" id="s3msg">&nbsp;</div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="slide" data-init="s4">
+  <h1>A bird and a plane both fly</h1>
+  <div class="cols">
+    <div class="text">
+      <p>People studied birds to learn how to fly, but planes do not flap their wings. They borrowed the idea and built something different.</p>
+      <p>Neural networks are the same. They borrowed the idea of neurons from the brain, but they work very differently. Each has strengths the other does not.</p>
+      <p class="try">Switch between the two comparisons.</p>
+    </div>
+    <div class="panel stack">
+      <div class="row"><button class="btn on" data-cmp="0">Bird and plane</button><button class="btn" data-cmp="1">Brain and neural network</button></div>
+      <table class="t" id="s4table"></table>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="slide" data-init="s5">
+  <h1>An artificial neuron</h1>
+  <div class="cols">
+    <div class="text">
+      <p>An artificial neuron is a tiny calculation.</p>
+      <ol>
+        <li>It takes in a few pieces of information. Here, each is 1 (yes) or 0 (no).</li>
+        <li>Each piece has a dial that says how much it matters. A negative dial pushes toward "no".</li>
+        <li>It multiplies each piece by its dial and adds everything up.</li>
+        <li>If the total reaches 3, the answer is yes.</li>
+      </ol>
+      <p class="try">Try it: tap the inputs and move the dials. Thicker lines matter more. Red lines push toward "no".</p>
+    </div>
+    <div class="panel stack">
+      <svg id="s5svg" viewBox="0 0 560 260" style="width:100%;display:block" role="img" aria-label="Beach decision neuron"></svg>
+      <div class="row" id="s5ins"></div>
+      <label class="sl">Sunny dial <input type="range" min="-5" max="5" step="1" value="2" data-w="0"><output></output></label>
+      <label class="sl">Warm dial <input type="range" min="-5" max="5" step="1" value="2" data-w="1"><output></output></label>
+      <label class="sl">Homework dial <input type="range" min="-5" max="5" step="1" value="-3" data-w="2"><output></output></label>
+      <div class="small mono" id="s5math"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="slide" data-init="s6">
+  <h1>The dials are what it learns</h1>
+  <div class="cols">
+    <div class="text">
+      <p>The dials are the "adjustable numbers" from last week. Learning just means finding dial settings that give the right answers.</p>
+      <p>Here is a record of six past days and what this person actually decided. The neuron does not know the rule. You have to find dial settings that match all six days.</p>
+      <p class="try">Try it: move the dials until every row has a check mark.</p>
+    </div>
+    <div class="panel stack">
+      <table class="t" id="s6table"></table>
+      <label class="sl">Sunny dial <input type="range" min="-5" max="5" step="1" value="0" data-w="0"><output></output></label>
+      <label class="sl">Warm dial <input type="range" min="-5" max="5" step="1" value="0" data-w="1"><output></output></label>
+      <label class="sl">Homework dial <input type="range" min="-5" max="5" step="1" value="0" data-w="2"><output></output></label>
+      <label class="sl">Yes if total is at least <input type="range" min="-3" max="6" step="1" value="1" id="s6t"><output></output></label>
+      <div class="row"><b id="s6score"></b><button class="btn" id="s6hint">Show a solution</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="slide" data-init="s7">
+  <h1>One neuron can only draw a straight line</h1>
+  <div class="cols">
+    <div class="text">
+      <p>When a single neuron sorts things into two groups, the dividing line it uses is always straight.</p>
+      <p>That works when the groups sit on opposite sides. It fails when one group surrounds the other.</p>
+      <p class="try">Try it: drag the round handles to tilt the line, or drag anywhere else to slide it. Get every dot on the correct side. Then switch to the ring.</p>
+    </div>
+    <div class="panel stack">
+      <div class="row"><button class="btn on" data-d7="blobs">Two groups</button><button class="btn" data-d7="ring">Ring</button></div>
+      <canvas id="s7c" style="width:100%;max-width:520px;aspect-ratio:1;margin:0 auto;border:1px solid var(--line);border-radius:8px"></canvas>
+      <div id="s7score" class="big"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="slide" data-init="s8">
+  <h1>Connect neurons together</h1>
+  <div class="cols">
+    <div class="text">
+      <p>A neural network is many neurons connected in layers.</p>
+      <ul>
+        <li>The first layer takes in the information.</li>
+        <li>The middle layers, called hidden layers, pass it along and combine it.</li>
+        <li>The last layer gives the answer.</li>
+      </ul>
+      <p>Each neuron's answer becomes an input for every neuron in the next layer. Every connection has its own dial.</p>
+      <p class="try">Try it: send a signal through. Tap any neuron to see its connections.</p>
+    </div>
+    <div class="panel stack">
+      <svg id="s8svg" viewBox="0 0 600 340" style="width:100%;display:block" role="img" aria-label="Neural network with layers"></svg>
+      <div class="row"><button class="btn primary" id="s8go">Send a signal</button><span class="small muted" id="s8info"></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 -->
+<section class="slide" data-init="s9">
+  <h1>More neurons, more complicated patterns</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Each neuron draws one straight line. Combine many of them across layers and their lines bend together into curves and loops.</p>
+      <p>Nobody tells the network where the lines go. It finds them by practicing on the dots.</p>
+      <p>The background color shows what the network would answer for every spot.</p>
+      <p class="try">Try it: pick a pattern and a number of neurons, then press Train. Try the ring with 1 neuron, then with 4.</p>
+    </div>
+    <div class="panel stack">
+      <div class="row"><span class="small">Pattern:</span><button class="btn on" data-d9="blobs">Two groups</button><button class="btn" data-d9="ring">Ring</button><button class="btn" data-d9="spiral">Spiral</button></div>
+      <div class="row"><span class="small">Neurons in each hidden layer:</span><button class="btn" data-n9="1">1</button><button class="btn" data-n9="2">2</button><button class="btn on" data-n9="4">4</button><button class="btn" data-n9="8">8</button></div>
+      <canvas id="s9c" style="width:100%;max-width:400px;aspect-ratio:1;margin:0 auto;border:1px solid var(--line);border-radius:8px"></canvas>
+      <div class="row"><button class="btn primary" id="s9train">Train</button><button class="btn" id="s9reset">Start over</button><span class="mono small" id="s9stat"></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 -->
+<section class="slide" data-init="s10">
+  <h1>How a network learns</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Nobody sets the dials by hand. The network learns them in a loop:</p>
+      <ol>
+        <li><b>Guess.</b> Look at one example and give an answer.</li>
+        <li><b>Check.</b> Compare the guess to the right answer.</li>
+        <li><b>Nudge.</b> Turn every dial a tiny bit in the direction that would have made the guess better.</li>
+      </ol>
+      <p>Repeat this millions of times and the dials settle into good positions. Here the neuron learns the six days from two slides ago on its own.</p>
+      <p class="try">Try it: press "One round" a few times and watch the dials move. Then press "100 rounds".</p>
+    </div>
+    <div class="panel stack">
+      <div id="s10ex" class="small"></div>
+      <div id="s10dials" class="stack" style="gap:8px"></div>
+      <svg id="s10chart" viewBox="0 0 440 120" style="width:100%;display:block" role="img" aria-label="Mistakes over time"></svg>
+      <div class="row"><button class="btn primary" id="s10one">One round</button><button class="btn" id="s10many">100 rounds</button><button class="btn" id="s10reset">Start over</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 -->
+<section class="slide" data-init="s11">
+  <h1>Layers learn building blocks</h1>
+  <div class="cols">
+    <div class="text">
+      <p>In networks that look at pictures, the layers tend to split up the work:</p>
+      <ul>
+        <li>Early layers notice simple things like edges and lines.</li>
+        <li>Middle layers combine those into shapes like loops and corners.</li>
+        <li>Later layers recognize the whole thing.</li>
+      </ul>
+      <p>This small network learned to read handwritten numbers from about 1,800 examples. It sees your drawing shrunk down to an 8 by 8 grid.</p>
+      <p class="try">Try it: draw a number from 0 to 9 in the box. Draw it big, filling the box.</p>
+    </div>
+    <div class="panel stack">
+      <div class="row" style="align-items:flex-start;gap:16px">
+        <canvas id="s11pad" class="pad" width="280" height="280"></canvas>
+        <div class="stack" style="gap:6px"><span class="small muted">What the network sees:</span><div class="mini8" id="s11mini"></div><button class="btn" id="s11clear">Clear</button></div>
+      </div>
+      <div class="bars" id="s11bars"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 -->
+<section class="slide" data-init="s12">
+  <h1>Nobody knows what every connection means</h1>
+  <div class="cols">
+    <div class="text">
+      <p>After training, a network is just a huge pile of dial settings. We can see what goes in and what comes out, but the reasons in the middle are hard to read. That is why neural networks are called black boxes.</p>
+      <p>This matters when a network makes an important decision, like approving a loan, and nobody can explain why.</p>
+      <p>Researchers are working on this. In large models they have found some neurons that respond to specific ideas, but most connections are still a mystery.</p>
+      <p class="try">Try it: these are the 32 hidden neurons from the number reader you just used. Tap one to see the 64 dials coming into it.</p>
+    </div>
+    <div class="panel stack">
+      <div id="s12neurons" style="display:grid;grid-template-columns:repeat(8,1fr);gap:6px;max-width:360px"></div>
+      <div class="row" style="align-items:flex-start;gap:18px">
+        <div class="heat" id="s12heat" style="max-width:180px"></div>
+        <div class="small" id="s12info" style="flex:1;min-width:12em"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 -->
+<section class="slide" data-init="s14">
+  <h1>Memorizing is not learning</h1>
+  <div class="cols">
+    <div class="text">
+      <p>A network can get every practice example right just by memorizing them, and then fail on anything new. This is called overfitting.</p>
+      <p>It is like a student who memorized last year's test answers instead of learning the material.</p>
+      <p>To catch this, some examples are kept aside and never used for practice. They work like a final exam with new questions.</p>
+      <p class="try">Try it: move the slider to let the curve bend more. Watch the two errors.</p>
+    </div>
+    <div class="panel stack">
+      <svg id="s14svg" viewBox="0 0 440 280" style="width:100%;display:block" role="img" aria-label="Curve fitting practice and new points"></svg>
+      <label class="sl">How bendy <input type="range" id="s14deg" min="1" max="9" step="1" value="1"><output id="s14dv"></output></label>
+      <div class="bars" id="s14bars"></div>
+      <div class="small muted"><b style="color:#111">●</b> practice dots &nbsp; <b style="color:var(--orange)">●</b> new dots it never saw</div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 -->
+<section class="slide" data-init="s15">
+  <h1>Bad examples make a bad network</h1>
+  <div class="cols">
+    <div class="text">
+      <p>A network only knows what it was shown. If one group of people is rare in the examples, the network learns the pattern for everyone else and gets that group wrong more often.</p>
+      <p>This has happened for real. Some face recognition systems made far more mistakes on darker-skinned women, because their training photos were mostly of lighter-skinned men.</p>
+      <p class="try">Try it: Group A and Group B follow slightly different patterns, and the network can't tell which group a dot belongs to. Change how much of the training data comes from Group B and compare how often it is right for each group.</p>
+      <p class="try">With 3%, the network simply learns Group A's pattern. With 50%, the mistakes are shared more fairly. Doing well for both groups needs plenty of examples from both.</p>
+    </div>
+    <div class="panel stack">
+      <div class="row"><span class="small">Group B share of the examples:</span><button class="btn" data-b15="0.03">3%</button><button class="btn" data-b15="0.15">15%</button><button class="btn on" data-b15="0.5">50%</button></div>
+      <svg id="s15svg" viewBox="0 0 440 300" style="width:100%;display:block" role="img" aria-label="Two groups and a learned line"></svg>
+      <div class="small muted">● Group A &nbsp; ■ Group B &nbsp; filled = yes, hollow = no</div>
+      <div class="bars" id="s15bars"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 16 -->
+<section class="slide">
+  <h1>Where neural networks are used today</h1>
+  <div class="cards">
+    <div class="card"><h3>Medical scans</h3><p>Spot signs of disease in X-rays, eye scans, and skin photos, often as a second opinion for a doctor.</p></div>
+    <div class="card"><h3>Speech to text</h3><p>Turn your voice into words for captions, dictation, and voice assistants.</p></div>
+    <div class="card"><h3>Translation</h3><p>Translate text and speech between more than a hundred languages.</p></div>
+    <div class="card"><h3>Self-driving cars</h3><p>Recognize lanes, signs, cars, and people from camera images in real time.</p></div>
+    <div class="card"><h3>Weather forecasts</h3><p>Learn from decades of past weather to predict the next days quickly.</p></div>
+    <div class="card"><h3>New medicines</h3><p>Predict the 3D shape of proteins, which helps scientists design new drugs.</p></div>
+    <div class="card"><h3>Your phone</h3><p>Face unlock, photo search, and keyboard suggestions all run small neural networks.</p></div>
+    <div class="card"><h3>Chat AI</h3><p>ChatGPT, Claude, and Gemini are giant neural networks that predict the next word.</p></div>
+  </div>
+</section>
+
+<!-- 17 -->
+<section class="slide" data-init="s17">
+  <h1>Code is exact instructions</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Code is a list of instructions for a computer. The computer follows them exactly, every time. It does what you said, not what you meant.</p>
+      <p>That is why code can be frustrating to write: one wrong step and the result is wrong.</p>
+      <p>You do not need to write code yourself. The AI writes it for you. Your job is to describe clearly what you want, and to check that the result works.</p>
+      <p class="try">Try it: give the robot instructions to reach the star, then press Run. Or load someone else's instructions and find the mistake.</p>
+    </div>
+    <div class="panel stack">
+      <div class="grid6" id="s17grid"></div>
+      <div class="row"><button class="btn" data-c="F">Forward</button><button class="btn" data-c="L">Turn left</button><button class="btn" data-c="R">Turn right</button></div>
+      <div class="prog" id="s17prog"></div>
+      <div class="row"><button class="btn primary" id="s17run">Run</button><button class="btn" id="s17undo">Undo</button><button class="btn" id="s17clear">Clear</button><button class="btn" id="s17buggy">Load instructions with a mistake</button></div>
+      <div id="s17msg" class="small">&nbsp;</div>
+    </div>
+  </div>
+</section>
+
+<!-- 18 -->
+<section class="slide" data-init="s18">
+  <h1>AI talks, code does things</h1>
+  <div class="cols">
+    <div class="text">
+      <p>On its own, a language model only predicts words. Last week we saw it struggle to count the letters in "strawberry", because it sees chunks instead of letters.</p>
+      <p>But a language model is very good at writing code, and code can count exactly. So many AI tools now write a small program and run it when they need a precise answer.</p>
+      <p>The same idea lets AI look up live information and build whole apps.</p>
+      <p class="try">Try it: change the word or the letter, then compare the guess with the code.</p>
+    </div>
+    <div class="stack">
+      <div class="panel stack">
+        <div class="row"><span class="small">Word</span><input type="text" id="s18w" value="strawberry" style="width:10em"><span class="small">Letter</span><input type="text" id="s18l" value="r" maxlength="1" style="width:3em"></div>
+        <b class="small">The model guessing the answer:</b>
+        <div class="bars" id="s18bars"></div>
+      </div>
+      <div class="panel stack">
+        <b class="small">The model writing code instead:</b>
+        <div class="code" id="s18code"></div>
+        <div class="row"><button class="btn primary" id="s18run">Run the code</button><span class="big mono" id="s18out"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 19 -->
+<section class="slide" data-init="s19">
+  <h1>Last week a text game, this week a real app</h1>
+  <div class="cols even">
+    <div class="stack">
+      <p class="small" style="margin:0">Last week you made a guessing game that ran as plain text. It worked, but you had to type everything.</p>
+      <div class="console" id="s19con"></div>
+    </div>
+    <div class="stack">
+      <p class="small" style="margin:0">This week you will build things with buttons, colors, and pictures, like this version of the same game.</p>
+      <div class="appbox stack">
+        <div class="applbl">Guess my number</div>
+        <div class="small" id="s19msg">I'm thinking of a number from 1 to 20. Tap a guess.</div>
+        <div class="numgrid" id="s19grid"></div>
+        <div class="row"><button class="btn" id="s19new">New game</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 20 -->
+<section class="slide" data-init="s20">
+  <h1>What makes a web page</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Every web page and web app has three parts:</p>
+      <ul>
+        <li><b>Content:</b> the words, buttons, and pictures.</li>
+        <li><b>Look:</b> the colors, sizes, and layout.</li>
+        <li><b>Actions:</b> what happens when you tap or type.</li>
+      </ul>
+      <p>Think of a house. The content is the walls and rooms, the look is the paint and furniture, and the actions are the electricity that makes things work.</p>
+      <p>Each part has its own kind of code, but you only need to know they exist. The AI writes all three.</p>
+      <p class="try">Try it: turn each part off and see what is missing.</p>
+    </div>
+    <div class="panel stack">
+      <div class="row">
+        <button class="tog on" data-p="html">Content <span class="muted">(HTML)</span></button>
+        <button class="tog on" data-p="css">Look <span class="muted">(CSS)</span></button>
+        <button class="tog on" data-p="js">Actions <span class="muted">(JavaScript)</span></button>
+      </div>
+      <iframe class="view" id="s20frame" title="Sample app" style="height:320px"></iframe>
+      <details><summary>Peek at the code (optional)</summary><div class="code" id="s20code" style="font-size:0.7em;margin-top:8px;max-height:16em;overflow:auto"></div></details>
+    </div>
+  </div>
+</section>
+
+<!-- 23 -->
+<section class="slide" data-init="s23">
+  <h1>Your prompt</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Describe your idea. If it needs live information, like weather or photos, just say so in your idea. The AI will find a free service that works. The finished prompt appears in the gray box.</p>
+      <p>The extra lines in the prompt tell the AI the technical details, like keeping everything in one file, making it work on a phone, and picking a live service that needs no sign-up. You do not need to change them.</p>
+      <p>Copy the prompt and paste it into ChatGPT, Claude, or Gemini.</p>
+    </div>
+    <div class="panel stack">
+      <label class="small" for="s23idea"><b>My app idea</b> (what it does, who it is for, what someone would tap or type)</label>
+      <textarea id="s23idea" rows="3" style="width:100%" placeholder="Example: A quiz about dog breeds. It shows a dog photo and four breed names, and I tap the right one. It keeps score."></textarea>
+      <div class="chips" id="s23chips"></div>
+      <textarea id="s23out" class="prompt-out" readonly aria-label="Finished prompt"></textarea>
+      <div class="row"><button class="btn primary" id="s23copy">Copy prompt</button><span class="small muted" id="s23msg"></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 25 -->
+<section class="slide" data-init="s25">
+  <h1>Build your app</h1>
+  <div class="stack">
+    <p class="small" style="margin:0">Paste the code the AI gave you. Press Preview to try it here, or Download to save it as a file you can open and share.</p>
+    <textarea id="s25code" rows="8" style="width:100%;font-family:var(--mono);font-size:0.75em" placeholder="Paste your code here" spellcheck="false" aria-label="App code"></textarea>
+    <div class="row">
+      <button class="btn primary" id="s25prev">Preview</button>
+      <button class="btn" id="s25tab">Open in a new tab</button>
+      <button class="btn" id="s25dl">Download</button>
+      <span class="small">File name</span><input type="text" id="s25name" value="my-app.html" style="width:12em">
+      <span class="small muted" id="s25msg"></span>
+    </div>
+    <iframe class="view" id="s25frame" title="Your app" style="height:70vh" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads"></iframe>
+  </div>
+</section>
+
+</main>
+
+<nav class="bar" aria-label="Slide navigation">
+  <div class="prog-line" id="progline"></div>
+  <button class="btn" id="prev">← Back</button>
+  <span id="count"></span>
+  <button class="btn primary" id="next">Next →</button>
+</nav>
+
+<script>
+const DIGITS = {"W1":[[-0.774,0.094,0.68,-0.173,-0.247,0.01,0.007,0.125,0.639,0.002,0.163,-0.728,0.372,-0.49,-0.739,1.381,-0.545,-0.596,-0.124,-0.073,0.415,0.123,0.458,0.154,-0.034,-0.339,0.368,0.563,0.364,0.04,-0.138,-0.775],[0.639,-0.864,0.794,-1.111,-0.179,-0.103,0.291,0.338,0.025,0.315,0.584,-0.461,-0.096,-0.502,-0.697,0.204,-1.458,-0.497,-0.309,0.512,1.381,-0.491,0.345,0.662,0.406,-1.448,0.8,-0.818,-0.718,-0.691,0.227,-1.068],[0.645,0.095,0.797,-2.668,0.174,-0.532,0.236,-0.185,0.554,0.137,0.944,-0.509,0.19,-0.415,-0.008,0.359,0.036,-0.801,-1.974,0.652,1.282,-0.626,0.938,-0.81,-0.137,-0.316,0.352,-0.425,-0.027,-0.091,0.604,-0.541],[-0.061,0.036,0.92,-1.063,0.143,-0.74,0.495,0.384,0.682,0.223,0.553,-0.016,0.404,0.493,0.136,0.213,0.609,-0.403,-1.428,0.005,0.803,-0.152,0.376,0.517,0.327,0.365,0.39,0.281,0.53,0.483,-0.387,0.023],[0.266,-1.332,0.725,0.076,-0.905,0.266,-0.174,0.54,-0.058,0.271,0.276,0.456,0.258,0.216,-0.095,0.1,-0.264,0.118,-1.493,0.94,1.685,0.542,-0.053,0.184,0.405,0.141,-0.135,0.469,0.748,1.065,0.287,-0.267],[0.679,-1.435,0.362,0.81,-0.517,0.967,-0.506,-0.835,0.357,-0.296,0.64,-0.702,0.358,-0.368,0.086,-0.38,-0.484,0.247,-0.7,0.728,1.501,-0.173,0.112,-0.67,0.531,0.32,-0.418,-0.246,0.203,1.35,0.626,0.37],[0.494,0.413,1.336,0.207,-0.931,0.632,-0.197,-0.926,0.533,-0.096,-0.061,-1.638,0.684,-1.245,-0.506,-0.477,-0.295,0.335,-0.014,0.127,1.027,-0.732,0.94,-0.063,-0.177,0.059,0.03,-0.015,-0.051,0.941,0.105,0.138],[-0.791,0.758,0.276,1.525,-0.138,0.183,-0.048,-0.345,0.046,-1.319,-0.48,-0.133,0.78,-1.167,-0.74,-0.692,-0.015,0.639,0.458,-0.549,0.516,0.046,1.603,-0.267,-0.778,-0.145,1.874,0.622,0.542,0.52,0.867,-0.613],[0.771,-0.227,0.482,-0.121,0.094,-0.672,-1.167,0.142,-0.659,-0.589,-0.182,-0.7,-0.458,0.201,0.098,0.514,-1.039,-0.389,-0.745,0.315,0.958,0.78,0.368,-0.111,1.195,-0.911,0.343,0.116,-0.102,0.388,0.295,-0.158],[0.508,0.665,-0.288,0.031,0.216,1.04,0.344,-0.472,0.519,0.838,0.19,-0.223,-0.235,0.383,0.177,-0.349,-0.274,-0.137,-0.687,-0.433,0.275,-0.499,-0.384,0.083,-0.03,-0.656,-0.16,-0.279,-0.942,-0.36,0.597,0.212],[0.036,0.643,-0.307,-0.131,-0.185,-0.083,1.413,-0.637,0.599,-0.063,-0.06,-0.42,-0.141,0.075,-0.232,0.519,-0.056,-0.216,0.745,0.384,-0.009,0.081,0.526,-1.293,0.216,-0.047,0.787,-0.243,-0.601,-0.036,0.247,-0.475],[-0.981,0.226,-0.018,-0.316,-0.288,-0.958,-0.372,0.164,0.574,0.102,-0.701,0.443,-0.113,0.953,-0.024,-0.013,0.303,0.492,0.313,0.138,0.134,0.26,0.227,-1.211,0.788,-0.643,0.275,0.463,-0.275,-0.456,0.639,0.392],[-0.231,0.378,-0.658,0.258,0.365,0.201,-0.862,0.598,0.047,0.665,0.059,0.01,-0.363,-0.022,0.657,-0.521,-0.606,1.471,0.688,0.09,0.096,0.389,-0.71,-0.144,0.124,-0.422,-0.49,0.206,-0.421,-0.999,0.443,-0.617],[0.085,0.115,-1.25,-0.06,0.604,1.646,0.114,-0.275,-0.008,-0.314,0.759,-1.08,0.207,-0.769,0.749,0.091,-0.59,1.228,1.603,0.057,0.372,-0.376,-0.668,-0.601,0.329,0.098,-0.569,-0.28,-0.861,-0.361,1.344,0.039],[-0.169,0.241,-1.176,-0.04,0.265,0.459,-1.119,-1.24,-0.064,0.097,-0.176,-0.15,0.052,-1.179,0.267,0.497,0.13,0.621,0.789,-0.055,0.272,-0.429,-0.244,-0.166,0.935,-0.087,-0.294,-0.299,-0.851,0.071,1.097,0.234],[-0.842,0.112,-0.261,0.49,0.041,-0.052,-0.426,-1.231,0.47,-0.151,0.074,-0.443,0.327,-0.578,0.213,-0.018,-0.39,-0.024,0.129,-0.328,0.346,0.617,-0.058,0.007,0.796,-0.163,1.534,-1.008,-0.322,0.712,0.144,0.424],[0.248,0.311,-0.783,-0.346,0.3,0.898,0.83,-0.62,-0.326,-0.005,0.214,-0.426,0.152,-0.579,0.459,0.131,-0.815,-0.64,-0.493,-0.072,-0.517,-1.484,-0.395,0.211,0.0,0.498,0.394,-0.644,0.269,0.378,0.022,0.19],[-0.124,0.119,0.023,-0.086,-0.282,1.35,1.14,0.101,0.184,-0.13,-0.15,-0.595,-1.01,0.198,-0.495,0.026,-0.595,-0.267,0.727,-0.747,-0.353,0.153,0.127,0.389,-0.483,0.675,0.815,-0.027,-0.558,0.081,0.364,-0.16],[-1.288,0.343,-0.049,0.205,0.074,-0.124,1.153,-0.753,-0.314,-0.486,-0.738,-0.313,0.126,0.288,-0.064,0.472,-0.565,-0.294,0.34,0.077,-0.783,0.79,0.415,-0.588,0.045,0.142,0.937,-0.012,-0.167,-0.68,0.162,0.354],[-0.729,0.326,-0.449,-0.096,0.377,-1.65,-1.111,0.393,1.05,0.647,-0.318,0.39,0.299,0.214,0.146,-0.55,0.891,0.428,0.47,0.375,-0.516,-0.11,-0.07,-0.835,-0.244,-0.108,0.577,-0.422,0.606,-0.66,0.395,0.305],[0.219,0.289,-0.172,-0.931,0.389,0.091,0.25,1.062,1.21,0.155,-0.002,0.228,-1.57,-0.354,0.581,-0.511,0.345,-0.011,0.588,0.505,-0.031,-0.228,-0.809,0.112,-0.39,-0.501,0.099,0.455,-0.36,-0.557,0.42,-0.477],[-0.598,0.504,-0.247,-0.959,0.306,1.04,1.204,-0.285,0.05,-0.054,-0.384,-0.542,-1.598,0.298,0.383,0.427,-0.482,-0.61,0.168,0.313,0.035,-0.27,0.129,-0.107,0.208,-0.436,-0.401,0.531,-0.856,-1.253,-0.019,-0.199],[-1.664,0.621,-0.508,-0.989,0.58,0.095,-0.625,-1.457,-0.73,-0.627,-0.433,-0.284,0.952,-0.092,0.63,0.156,0.737,-0.463,-0.144,-0.073,-0.166,0.676,0.384,0.08,1.113,-0.463,0.512,0.661,-0.687,-1.414,0.949,0.99],[0.465,0.353,-0.701,-0.154,0.193,0.207,0.151,-1.539,0.49,-0.294,-0.5,1.549,-0.521,-0.285,0.956,-0.507,-0.01,-1.007,0.675,0.591,0.114,-0.336,-0.589,0.268,1.545,-0.573,-0.998,-0.383,0.434,-0.213,0.417,1.804],[-0.781,0.158,-0.142,-1.025,0.036,-0.522,0.752,0.663,-0.602,-0.22,0.515,0.076,0.263,-0.389,0.559,-0.784,-0.957,-1.791,0.233,-0.727,-0.026,-1.871,-0.584,-0.415,-0.617,0.336,0.726,-0.283,0.296,-0.56,-0.08,0.517],[-2.282,0.651,0.521,-0.702,0.835,-0.386,1.377,-0.057,-1.652,-0.004,-0.131,-0.261,-1.003,0.126,-0.204,0.108,-1.272,-0.465,0.284,-0.35,-0.274,-1.008,0.222,0.428,-0.463,0.881,0.14,0.138,0.309,0.283,0.172,0.061],[-0.646,0.302,0.33,-0.219,0.521,-1.092,1.104,-0.143,-1.362,0.263,-0.925,0.223,0.848,0.658,0.205,0.435,0.229,0.045,0.099,0.556,-0.417,0.296,0.183,0.462,-0.617,0.968,0.206,-0.553,0.664,0.327,0.578,0.27],[1.157,-0.442,0.479,-0.31,0.643,-0.705,-0.27,0.484,0.71,-0.3,-0.337,-0.141,0.762,0.127,0.9,-0.106,0.763,0.196,-0.391,0.766,0.139,-0.154,-0.121,0.073,-0.612,1.185,0.27,-0.112,0.392,0.376,0.71,-0.016],[0.079,-0.05,0.082,-1.041,0.153,0.661,-1.051,0.899,1.498,0.357,-0.818,0.045,-1.221,0.021,0.623,-0.818,0.384,-0.353,-0.53,0.54,-0.148,-0.384,0.202,0.364,0.057,0.507,0.521,0.995,-0.122,0.922,0.503,-0.602],[-1.117,-0.229,1.177,-1.374,-0.237,0.494,0.595,-0.028,0.533,-0.176,-0.645,0.366,-2.132,0.389,0.474,0.649,-0.167,-1.096,-0.783,0.524,-0.311,0.435,-0.176,0.431,-0.714,0.197,-0.073,0.359,-0.23,0.504,0.415,0.191],[-1.001,-0.061,1.472,-1.512,-0.142,0.147,-0.701,-0.546,-0.708,0.098,0.029,-0.595,-1.251,0.658,0.543,0.458,0.566,-1.26,-0.215,0.385,-0.053,0.306,-0.031,0.286,-0.445,-0.302,0.038,0.393,-0.166,-0.594,0.695,0.734],[0.291,0.024,0.602,0.007,1.035,-0.275,-0.275,-0.144,-0.375,-1.365,0.007,0.654,-2.327,0.646,1.37,0.831,0.562,-0.677,0.012,0.712,0.275,-1.441,-1.348,1.277,0.469,-0.049,-0.998,0.616,0.219,-1.483,1.096,2.662],[-1.15,-2.247,0.41,0.987,1.037,0.406,1.1,-0.872,-0.858,-0.512,0.323,-1.34,0.133,-0.528,0.104,-1.61,-0.906,-0.318,1.069,-0.43,-0.158,-0.96,0.655,0.13,-0.509,-0.234,0.019,1.085,0.429,-0.07,0.535,-0.131],[-0.536,0.388,0.226,0.883,0.347,-0.354,0.395,-0.497,-0.971,-0.055,-0.37,0.252,0.377,-0.047,0.111,0.401,-0.873,-0.093,0.146,-0.063,0.059,-0.189,0.007,-0.175,0.14,0.523,-0.817,0.692,-0.356,-0.375,-0.506,0.893],[1.344,0.663,-0.149,0.259,0.207,-0.332,0.589,-0.05,-1.166,0.638,-0.59,0.019,0.624,-0.242,0.071,0.277,1.554,0.668,-0.192,0.617,-0.188,-0.362,0.474,0.345,-0.236,0.508,-0.735,-0.16,0.065,-0.507,0.469,0.307],[0.73,1.656,0.398,-0.226,0.559,0.021,0.306,0.618,-0.742,-0.159,-0.731,-0.776,1.458,-0.459,0.456,0.071,0.703,0.709,-1.027,0.67,-0.838,0.312,0.99,0.606,0.01,0.836,0.105,0.892,0.382,-0.093,-0.085,-0.005],[-1.19,0.836,0.463,0.087,0.315,0.66,-0.052,0.373,0.289,-0.04,-0.775,0.667,0.288,-0.432,0.502,-1.267,0.356,-0.218,-0.379,0.086,-0.463,-0.172,-0.089,0.298,0.159,0.421,-0.256,0.748,-0.085,0.709,0.702,-0.357],[0.219,-0.288,0.895,0.147,-0.058,0.361,0.083,-0.118,0.521,-0.057,-0.269,0.552,-0.577,-0.05,0.433,-0.316,0.131,-0.557,0.273,0.259,-0.554,-0.22,-1.037,0.654,-0.612,0.5,-0.073,0.333,0.144,0.847,-0.195,-0.176],[0.958,-1.179,1.35,0.8,0.793,0.202,0.319,-0.309,0.095,-0.576,-0.093,0.475,-2.948,-0.195,0.33,0.57,0.485,0.377,0.368,-0.031,0.228,-0.111,-0.484,0.201,-1.339,0.117,-0.555,-1.002,-0.096,0.687,0.84,-0.506],[2.413,-0.007,2.367,1.548,-0.122,-0.483,-0.852,-0.594,-0.279,-0.607,0.997,-0.128,-2.446,0.021,-0.474,1.112,0.493,1.358,0.641,-1.505,0.454,0.466,-0.599,-0.53,-1.468,0.794,-0.414,-0.11,-1.116,1.133,0.743,-1.4],[0.503,-0.998,0.304,1.32,0.901,0.983,-0.352,-0.405,-0.704,-0.844,-0.496,0.859,0.573,0.677,0.593,-0.604,-1.024,-0.924,-0.416,-0.917,-0.855,0.101,0.458,0.546,1.809,-0.599,0.245,1.596,-1.177,0.408,-0.898,1.299],[-0.028,-2.361,-0.309,0.551,0.056,0.125,0.736,-0.455,-1.175,-0.359,0.55,-0.299,1.58,0.325,0.709,-0.021,-1.289,0.302,-0.711,-0.203,0.513,-0.325,0.108,0.273,0.66,0.655,-1.2,1.316,-0.529,-0.07,-0.323,0.741],[0.913,-0.344,-0.35,0.727,-0.158,-1.039,-0.166,0.006,0.145,0.228,0.03,-0.252,0.646,-0.942,0.411,1.236,-0.008,0.024,-0.18,-0.123,-0.456,0.163,1.431,-0.124,0.29,0.348,-0.674,0.505,0.245,-0.168,-0.183,0.394],[-0.611,0.722,-0.212,0.599,0.77,-0.36,-0.404,0.881,-1.997,0.037,0.29,-1.319,0.537,-0.142,-0.25,0.213,0.43,-0.466,-0.673,0.173,-0.616,-0.197,0.833,1.007,0.976,-0.251,0.04,0.933,0.765,-0.443,-0.805,0.246],[0.008,0.413,-0.248,1.021,0.675,0.989,0.415,0.125,-0.034,-0.094,0.178,0.111,0.489,-1.124,-0.22,-1.018,-0.571,-0.362,0.616,0.0,0.093,-0.237,-1.18,0.209,0.823,-0.152,-0.459,0.764,0.727,-0.748,-0.886,0.224],[1.447,-0.477,-0.696,1.366,0.03,-0.251,0.221,0.389,0.416,0.45,0.102,1.154,-0.31,-0.888,0.007,-0.122,0.233,0.352,0.115,-0.483,-0.049,0.067,0.087,-0.115,0.002,0.082,-1.266,0.073,0.068,0.496,-0.799,-0.519],[1.108,-0.174,-1.026,0.666,0.223,-0.605,-0.612,0.121,-0.293,0.025,-0.267,0.171,0.142,0.15,0.154,0.889,-0.312,0.879,-0.104,-0.599,-0.134,0.611,0.802,-0.192,-0.592,-0.017,-0.99,0.622,-0.533,1.232,-0.714,-0.938],[0.884,-0.27,0.94,-0.208,-0.257,0.167,-0.564,-0.72,0.028,0.073,0.33,-0.681,0.714,0.049,-0.19,-0.605,-0.194,0.462,0.282,0.005,-1.093,0.407,1.012,0.728,0.077,0.1,0.16,2.236,0.161,0.755,-0.193,-0.421],[-0.414,1.312,-0.142,-0.742,-0.43,-1.17,0.394,-0.698,0.21,0.656,0.18,0.527,0.658,0.276,0.1,-1.172,-0.615,-0.016,-0.073,0.588,-0.8,-0.636,0.846,0.925,0.567,0.734,0.743,0.486,-1.531,0.0,-1.147,0.007],[0.68,-0.42,-1.325,0.543,-0.005,-0.372,1.048,-1.834,-1.032,0.113,0.694,1.07,1.364,0.425,0.143,-1.216,-1.69,-0.82,0.271,-0.326,0.414,-0.82,0.602,0.431,0.22,0.185,-0.397,0.425,-0.033,0.614,-0.758,0.354],[0.514,-2.13,0.169,-0.157,0.334,-0.153,-0.223,-0.063,0.704,0.495,1.689,0.649,0.747,0.454,0.017,0.301,0.281,-0.264,-0.738,-0.549,1.298,0.417,1.385,0.023,0.533,-0.449,0.335,0.154,-0.104,0.632,0.237,-0.165],[-0.205,-1.972,0.179,0.457,0.507,-0.893,-0.32,0.728,0.506,0.474,1.734,0.103,-0.039,0.262,-0.003,-0.002,-0.48,-0.691,-0.158,-0.127,0.615,-0.163,-0.001,0.528,1.055,-0.484,1.107,-0.035,0.992,0.337,-0.581,-0.104],[0.104,-0.605,-0.398,1.284,-0.064,0.777,0.608,0.479,-0.214,0.517,0.66,0.604,0.343,-0.55,-0.762,-0.441,-0.091,-0.487,0.232,-0.226,0.252,-0.824,-0.228,0.046,0.193,-0.069,-0.052,-1.026,1.137,-0.253,-0.838,-0.041],[-0.0,0.371,-0.91,0.161,0.212,0.655,0.156,-0.021,0.305,0.511,0.456,-0.249,-0.078,-0.036,-0.265,0.166,-0.322,0.807,-0.254,-0.363,-0.118,-0.427,-0.316,-0.249,0.173,-0.024,-0.682,-0.424,-0.241,-1.195,-0.616,-0.065],[-0.037,0.59,-1.058,-0.213,-0.592,-0.166,-0.301,-0.251,0.113,0.575,0.297,-0.326,0.194,0.578,-0.557,0.19,0.144,0.204,-0.614,-0.064,-0.123,0.291,-0.116,0.342,-0.106,0.368,0.455,0.684,-0.047,0.028,-1.719,0.423],[-1.01,0.194,0.9,-0.666,-1.133,0.443,-0.522,0.457,-0.034,1.529,0.374,-1.356,1.282,0.185,0.105,-0.271,-0.218,-1.205,-0.278,0.69,0.139,0.055,0.992,-0.001,0.084,-0.511,1.132,-0.113,0.679,0.885,0.34,0.659],[1.104,0.294,0.12,-0.238,-0.209,0.423,-0.463,0.161,0.337,0.422,0.652,-0.023,0.384,0.307,-0.723,0.777,-0.212,0.227,-0.182,-0.212,-0.046,0.07,0.23,-0.351,0.954,-0.536,0.069,-0.777,0.226,0.104,-1.451,0.504],[-0.418,0.451,1.164,0.421,-0.558,-1.703,-0.285,0.422,-0.857,-0.703,0.586,0.064,1.111,0.387,-0.063,-0.687,-1.865,-0.178,-0.901,-0.01,0.878,-0.117,-0.468,0.391,-0.336,-0.642,0.461,0.451,-1.288,0.052,0.635,-0.081],[-0.163,0.769,0.381,-0.274,0.698,-0.473,0.65,0.358,-1.448,0.464,0.217,-0.454,1.096,0.647,-0.106,0.039,0.594,1.014,0.378,-0.256,-0.112,-0.006,0.487,-0.058,0.931,-0.192,0.497,-0.542,-0.363,0.04,-0.312,0.206],[0.287,0.522,-0.227,1.381,0.266,-0.235,-0.142,-0.092,-0.896,0.487,-0.355,0.969,0.63,0.819,-0.229,-0.624,0.151,0.862,1.388,0.176,0.509,-0.225,-0.33,0.931,0.381,0.376,0.991,-0.525,0.171,0.478,0.038,0.3],[-0.244,0.355,-0.61,0.299,-0.335,-0.085,-0.581,-0.162,0.528,-0.07,0.215,0.741,0.272,0.677,-0.404,0.157,-0.278,0.611,0.896,0.084,0.092,0.731,-0.238,0.5,-0.127,0.498,0.381,-1.561,0.895,0.409,-0.443,0.083],[-0.567,-0.219,-0.698,-0.037,-0.046,0.086,-0.81,0.272,-0.099,0.396,0.995,-0.377,0.134,0.868,-0.488,0.511,0.445,-0.14,-0.314,-0.037,-0.326,0.307,-0.29,0.716,0.197,0.806,0.461,-0.967,1.048,-0.125,-0.649,0.916],[-0.058,-0.289,-0.357,0.365,-0.182,0.45,-1.703,0.067,-0.607,1.269,-0.252,-0.018,0.119,0.801,-1.266,1.036,0.464,-0.416,0.087,0.2,-0.579,-0.322,-0.352,0.47,0.271,0.557,-0.598,-1.455,-0.199,0.145,-1.664,0.38],[-0.479,-1.632,0.684,-0.863,-1.036,0.368,-2.14,0.171,0.438,0.204,-0.053,-0.39,1.061,0.373,-0.515,0.594,0.551,-1.362,0.9,0.999,0.408,-1.36,-0.761,0.781,-0.282,0.116,0.289,-2.023,0.471,-0.1,0.266,0.869]],"b1":[0.39,0.087,0.456,-0.171,0.804,0.384,0.198,-1.178,-0.432,0.451,0.256,-0.385,-0.901,0.275,0.07,0.562,-0.283,-0.444,-0.22,0.317,0.371,1.041,-0.006,-0.413,1.277,-0.479,-0.368,-0.898,-0.709,0.35,-0.284,0.658],"W2":[[-1.035,-3.249,2.762,1.736,1.858,-1.55,-1.098,-0.453,0.583,-2.411],[-3.772,-1.826,-0.24,2.254,-0.359,0.444,-2.751,-1.506,-0.684,1.654],[0.087,-2.381,-2.85,1.283,0.864,1.6,0.273,1.574,-1.41,-0.765],[-1.29,-1.625,-2.277,-2.927,2.596,0.613,0.999,1.958,-1.697,-0.627],[0.322,-0.398,-1.236,-0.062,0.466,-0.432,0.062,0.631,0.722,-0.221],[-1.325,1.777,0.853,0.825,-0.666,-3.187,0.62,0.231,-0.677,-1.276],[1.389,-0.466,-2.056,-1.629,0.206,0.783,1.5,-0.839,0.239,-0.152],[-0.039,1.639,0.202,1.17,-1.87,-2.966,0.445,0.233,-0.527,-0.692],[-2.971,0.947,-1.573,-0.08,0.672,1.062,-0.416,-2.007,0.859,0.914],[-0.697,0.117,-0.062,0.565,-1.287,0.234,0.592,-0.704,0.735,0.198],[1.141,-1.9,1.151,0.287,0.504,0.958,0.133,-2.054,-1.591,0.808],[1.281,-0.634,0.582,0.756,2.609,-1.635,-1.383,1.574,-2.397,-0.371],[-3.738,2.119,-1.543,1.246,-0.893,-0.273,0.688,-0.184,-0.17,-1.0],[0.328,-0.846,2.041,0.296,-1.838,-1.418,-0.089,-1.404,-0.159,0.859],[-0.542,0.485,-1.473,-0.205,0.705,-0.829,-0.868,0.413,0.614,0.844],[0.506,1.801,-1.802,0.507,-1.503,0.441,0.23,-0.686,-2.808,0.569],[1.287,0.376,-0.972,-2.427,-1.023,0.749,2.096,0.857,-0.305,-0.52],[2.607,-0.279,-0.941,-0.001,-0.404,2.205,0.026,-0.757,-1.175,-1.937],[-0.86,0.552,1.973,-0.251,-3.652,1.536,-0.198,1.462,-1.373,-1.507],[-0.678,0.121,0.698,-0.83,-0.15,-0.099,-0.564,-0.058,0.625,0.817],[0.702,-0.808,0.905,0.204,-2.476,0.503,-2.097,0.676,-0.457,1.292],[0.545,-3.626,0.135,0.707,0.543,0.45,-0.63,-0.271,1.225,-0.039],[-0.43,0.751,1.164,-2.074,0.238,-0.74,0.732,0.591,0.823,-2.007],[-0.399,1.025,-0.854,-2.302,1.0,-0.754,0.195,-0.869,0.778,0.338],[1.076,-1.174,1.008,0.757,-0.678,-0.462,-0.658,0.173,0.803,-0.727],[0.596,0.523,-0.78,-0.751,0.85,0.2,0.403,-2.472,-0.476,0.683],[-2.088,0.705,1.092,-0.546,1.149,1.208,-3.03,-0.857,-1.383,-0.192],[-0.385,1.234,1.562,-1.608,1.331,-0.044,-0.617,1.564,-2.056,-1.721],[0.165,1.343,0.049,-0.562,0.283,0.232,0.618,-2.069,-0.028,-2.18],[-1.843,-2.651,-1.636,2.07,-3.33,1.722,1.212,0.566,0.559,-0.622],[-0.876,0.353,-2.313,-1.595,1.003,-0.631,-1.226,1.074,-0.792,1.132],[0.656,-0.419,1.177,0.201,0.317,-2.197,-0.8,-0.485,0.684,0.395]],"b2":[0.379,-0.813,-0.099,0.055,-0.045,0.304,-0.447,0.232,0.456,-0.35]};
+</script>
+<script>
+"use strict";
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs = {}, parent) { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function rng(seed) { let s = (seed >>> 0) || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const pct = p => Math.round(p * 100) + "%";
+function renderBars(el, items, max) {
+  max = max || Math.max(...items.map(i => i.p), 0.0001);
+  el.innerHTML = items.map(it => `<div class="barrow ${it.cls || ""}"><span class="bl">${esc(it.label)}</span><span class="bt"><span class="bf" style="width:${Math.max(0.5, it.p / max * 100)}%"></span></span><span class="bv">${it.v != null ? it.v : pct(it.p)}</span></div>`).join("");
+}
+function setOn(buttons, active) { buttons.forEach(b => b.classList.toggle("on", b === active)); }
+function fitCanvas(cv) {
+  const w = cv.clientWidth || 400, h = cv.clientHeight || w, dpr = window.devicePixelRatio || 1;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); return { g, w, h };
+}
+function download(name, text) {
+  const blob = new Blob([text], { type: "text/html" }); const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+/* ---------- Deck navigation ---------- */
+const INIT = {}, SHOW = {}, HIDE = {};
+const slides = $$(".slide"); let cur = 0; const inited = new Set();
+function go(i) {
+  i = Math.max(0, Math.min(slides.length - 1, i));
+  const old = slides[cur].dataset.init; if (old && HIDE[old] && i !== cur) HIDE[old]();
+  slides[cur].classList.remove("active"); cur = i; slides[cur].classList.add("active");
+  $("#count").textContent = `${cur + 1} / ${slides.length}`;
+  $("#progline").style.width = `${(cur + 1) / slides.length * 100}%`;
+  $("#prev").disabled = cur === 0; $("#next").disabled = cur === slides.length - 1;
+  $("#deck").scrollTop = 0;
+  const id = slides[cur].dataset.init;
+  if (id && !inited.has(id) && INIT[id]) { inited.add(id); try { INIT[id](slides[cur]); } catch (e) { console.error(e); } }
+  if (id && SHOW[id]) SHOW[id]();
+  try { history.replaceState(null, "", "#" + (cur + 1)); } catch (e) {}
+}
+$("#prev").onclick = () => go(cur - 1);
+$("#next").onclick = () => go(cur + 1);
+document.addEventListener("keydown", e => {
+  if (e.target.closest && e.target.closest("input, textarea, select, [contenteditable]")) return;
+  if (e.key === " " && e.target.closest && e.target.closest("button, a")) return;
+  if (["ArrowRight", "PageDown", " "].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+  else if (["ArrowLeft", "PageUp"].includes(e.key)) { e.preventDefault(); go(cur - 1); }
+  else if (e.key === "Home") go(0);
+  else if (e.key === "End") go(slides.length - 1);
+});
+window.addEventListener("resize", () => { const id = slides[cur].dataset.init; if (id && SHOW[id]) SHOW[id](); });
+
+/* ---------- 2: spam rules ---------- */
+INIT.s2 = () => {
+  const RULES = [
+    { name: 'Says "free"', test: e => /free/i.test(e.s) },
+    { name: 'Says "winner" or "won"', test: e => /winner|\bwon\b/i.test(e.s) },
+    { name: 'Has "!!"', test: e => /!!/.test(e.s) },
+    { name: 'Mentions a password', test: e => /password/i.test(e.s) },
+    { name: "From someone you don't know", test: e => !e.known }
+  ];
+  const BATCHES = [
+    [
+      { s: "FREE iPhone for you!! Click now", f: "deals4u@xyz.biz", known: false, spam: true },
+      { s: "You are a WINNER, claim your prize", f: "prize-center@win.info", known: false, spam: true },
+      { s: "Confirm your password or lose access", f: "security@acc0unt.net", known: false, spam: true },
+      { s: "Lunch tomorrow?", f: "Mom", known: true, spam: false },
+      { s: "Notes from today's class", f: "Jordan (classmate)", known: true, spam: false },
+      { s: "Your package was delivered", f: "Post Office", known: false, spam: false }
+    ],
+    [
+      { s: "Fr3e g1ft card, just for y0u", f: "rewards@gft.top", known: false, spam: true },
+      { s: "Congrats, you have been selected for a reward", f: "promo@select.co", known: false, spam: true },
+      { s: "Act fast: your account will be closed today", f: "support@bank-alerts.ru", known: false, spam: true },
+      { s: "Free pizza in the student center today", f: "Student Life", known: true, spam: false },
+      { s: "I won bingo night!!", f: "Grandma", known: true, spam: false },
+      { s: "Here is the password reset link you asked for", f: "School IT", known: true, spam: false }
+    ]
+  ];
+  let batch = 0;
+  $("#s2rules").innerHTML = RULES.map((r, i) => `<label><input type="checkbox" data-r="${i}"> Mark as spam if it ${esc(r.name.charAt(0).toLowerCase() + r.name.slice(1))}</label>`).join("");
+  function render() {
+    const on = $$("#s2rules input").filter(c => c.checked).map(c => RULES[+c.dataset.r]);
+    let right = 0;
+    $("#s2emails").innerHTML = BATCHES[batch].map(e => {
+      const said = on.some(r => r.test(e)); const ok = said === e.spam; if (ok) right++;
+      return `<div class="email ${ok ? "right" : "wrong"}"><div><div>${esc(e.s)}</div><div class="who">from ${esc(e.f)} · really ${e.spam ? "spam" : "not spam"}</div></div><div class="verdict">${said ? "Spam" : "Inbox"} <span class="${ok ? "ok" : "no"}">${ok ? "✓" : "✗"}</span></div></div>`;
+    }).join("");
+    $("#s2score").textContent = `${right} of 6 correct`;
+    $("#s2batchname").textContent = batch ? "New emails" : "First emails";
+    $("#s2next").textContent = batch ? "Back to the first emails" : "New emails arrive";
+  }
+  $("#s2rules").addEventListener("change", render);
+  $("#s2next").onclick = () => { batch = 1 - batch; render(); };
+  render();
+};
+
+/* ---------- 3: biological neuron ---------- */
+INIT.s3 = el => {
+  const svg = $("#s3svg");
+  const CX = 300, CY = 140, R = 46;
+  const dendr = [[30, 40], [20, 140], [30, 240]];
+  const paths = dendr.map(([x, y]) => `M${x},${y} C${x + 120},${y} ${CX - 140},${(y + CY) / 2} ${CX - R + 4},${CY + (y - CY) * 0.25}`);
+  paths.forEach((d, i) => { svgEl("path", { d, fill: "none", stroke: "#9aa3b2", "stroke-width": 6, "stroke-linecap": "round" }, svg); svgEl("text", { x: dendr[i][0] - 4, y: dendr[i][1] - 12, "font-size": 13, fill: "#5b5f66" }, svg).textContent = "from neuron " + (i + 1); });
+  const axonD = `M${CX + R},${CY} C${CX + 120},${CY} ${CX + 120},${CY - 20} 540,${CY - 20}`;
+  svgEl("path", { d: axonD, fill: "none", stroke: "#9aa3b2", "stroke-width": 8, "stroke-linecap": "round" }, svg);
+  ["M540,120 l35,-30", "M540,120 l40,0", "M540,120 l35,30"].forEach(d => svgEl("path", { d, stroke: "#9aa3b2", "stroke-width": 5, "stroke-linecap": "round" }, svg));
+  svgEl("text", { x: 548, y: 168, "font-size": 13, fill: "#5b5f66", "text-anchor": "middle" }, svg).textContent = "to next neurons";
+  const clip = svgEl("clipPath", { id: "s3clip" }, svgEl("defs", {}, svg)); svgEl("circle", { cx: CX, cy: CY, r: R }, clip);
+  const THRESH = 1.6, FULL = 2.4; // charge needed to fire, and charge that fills the cell
+  const lineY = CY + R - 2 * R * (THRESH / FULL);
+  const body = svgEl("circle", { cx: CX, cy: CY, r: R, fill: "#f3f4f6", stroke: "#111", "stroke-width": 3 }, svg);
+  const fill = svgEl("rect", { x: CX - R, y: CY + R, width: 2 * R, height: 0, fill: "#bcd0f7", "clip-path": "url(#s3clip)" }, svg);
+  svgEl("circle", { cx: CX, cy: CY, r: R, fill: "none", stroke: "#111", "stroke-width": 3 }, svg);
+  svgEl("line", { x1: CX - R, x2: CX + R, y1: lineY, y2: lineY, stroke: "#b91c1c", "stroke-dasharray": "4 3", "stroke-width": 2 }, svg);
+  svgEl("text", { x: CX + R + 6, y: lineY + 4, "font-size": 12, fill: "#b91c1c" }, svg).textContent = "fire line";
+  const pathEls = paths.map(d => svgEl("path", { d, fill: "none", stroke: "none" }, svg));
+  const axonEl = svgEl("path", { d: axonD, fill: "none", stroke: "none" }, svg);
+  let charge = 0, pulses = [], last = performance.now(), running = false, firing = 0;
+  const msg = h => { $("#s3msg").innerHTML = h; };
+  function addPulse(i) { const dot = svgEl("circle", { r: 8, fill: "#1d4ed8" }, svg); pulses.push({ el: dot, path: pathEls[i], t: 0, dur: 600, kind: "in" }); kick(); }
+  function fire() {
+    firing = 600; // hold the fired state long enough to see it
+    const dot = svgEl("circle", { r: 10, fill: "#f59e0b" }, svg); pulses.push({ el: dot, path: axonEl, t: 0, dur: 700, kind: "out" });
+    body.setAttribute("fill", "#fde68a"); fill.setAttribute("fill", "#f59e0b");
+    msg("<b>It fired!</b> The signals added up past the fire line.");
+  }
+  function kick() { if (!running) { running = true; last = performance.now(); requestAnimationFrame(loop); } }
+  function loop(now) {
+    const dt = Math.min(50, now - last); last = now;
+    if (firing > 0) { firing -= dt; if (firing <= 0) { firing = 0; charge = 0; body.setAttribute("fill", "#f3f4f6"); fill.setAttribute("fill", "#bcd0f7"); } }
+    else charge *= Math.pow(0.5, dt / 500);
+    let arrived = 0;
+    pulses = pulses.filter(p => {
+      p.t += dt; const L = p.path.getTotalLength(); const pt = p.path.getPointAtLength(Math.min(1, p.t / p.dur) * L);
+      p.el.setAttribute("cx", pt.x); p.el.setAttribute("cy", pt.y);
+      if (p.t >= p.dur) { p.el.remove(); if (p.kind === "in") arrived++; return false; }
+      return true;
+    });
+    if (arrived && !firing) {
+      charge += arrived;
+      if (charge >= THRESH) fire();
+      else if (charge > 1.05) msg("Close! Some charge was still left, but not enough. Send signals closer together.");
+      else msg("Not enough yet. A single signal fades away.");
+    }
+    const h = firing ? 2 * R : Math.min(1, charge / FULL) * 2 * R; fill.setAttribute("y", CY + R - h); fill.setAttribute("height", h);
+    if (pulses.length || firing || charge > 0.02) requestAnimationFrame(loop); else { running = false; fill.setAttribute("height", 0); }
+  }
+  $$("[data-in]", el).forEach(b => b.onclick = () => addPulse(+b.dataset.in));
+  $("#s3all").onclick = () => [0, 1, 2].forEach(addPulse);
+};
+
+/* ---------- 4: comparison ---------- */
+INIT.s4 = el => {
+  const T = [
+    { h: ["", "Bird", "Plane"], rows: [["How it flies", "Flaps its wings", "Fixed wings and engines"], ["Fuel", "A few seeds and bugs", "Tons of jet fuel"], ["Landing", "Any branch or rooftop", "Needs a long runway"], ["Carries", "Itself", "Hundreds of people"], ["Speed", "Up to about 70 mph", "About 550 mph"]] },
+    { h: ["", "Brain", "Neural network"], rows: [["Made of", "Living cells", "Math running on computer chips"], ["Power", "About 20 watts, like a dim light bulb", "Training a big one uses as much electricity as thousands of homes"], ["Learning", "A child learns \"cat\" from a few cats", "Needs thousands or millions of examples"], ["Speed", "Signals travel fairly slowly", "Trillions of calculations per second"], ["Rest", "Needs sleep", "Runs day and night without getting tired"], ["Sharing", "You can't copy what you know into someone else", "Can be copied to millions of computers instantly"]] }
+  ];
+  function render(i) { const t = T[i]; $("#s4table").innerHTML = `<tr>${t.h.map(h => `<th>${h}</th>`).join("")}</tr>` + t.rows.map(r => `<tr><td class="muted">${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join(""); }
+  $$("[data-cmp]", el).forEach(b => b.onclick = () => { setOn($$("[data-cmp]", el), b); render(+b.dataset.cmp); });
+  render(0);
+};
+
+/* ---------- 5: beach neuron ---------- */
+INIT.s5 = el => {
+  const NAMES = ["Sunny", "Warm", "Homework due"]; const x = [1, 1, 0];
+  $("#s5ins").innerHTML = NAMES.map((n, i) => `<button class="tog ${x[i] ? "on" : ""}" data-x="${i}">${n}: ${x[i] ? "yes" : "no"}</button>`).join("");
+  const svg = $("#s5svg");
+  function draw() {
+    const w = $$("[data-w]", el).map(s => +s.value);
+    $$("[data-w]", el).forEach(s => s.nextElementSibling.textContent = s.value);
+    $$("[data-x]", el).forEach((b, i) => { b.classList.toggle("on", !!x[i]); b.textContent = `${NAMES[i]}: ${x[i] ? "yes" : "no"}`; });
+    const total = w.reduce((s, v, i) => s + v * x[i], 0), go = total >= 3;
+    svg.innerHTML = "";
+    const ys = [50, 130, 210];
+    ys.forEach((y, i) => {
+      const col = w[i] >= 0 ? "#1d4ed8" : "#b91c1c";
+      svgEl("line", { x1: 150, y1: y, x2: 330, y2: 130, stroke: w[i] === 0 ? "#d7dae0" : col, "stroke-width": 1 + Math.abs(w[i]) * 2.2, "stroke-opacity": x[i] ? 1 : 0.3 }, svg);
+      svgEl("rect", { x: 10, y: y - 22, width: 140, height: 44, rx: 8, fill: x[i] ? "#e5edff" : "#fff", stroke: "#111", "stroke-width": 2 }, svg);
+      svgEl("text", { x: 80, y: y - 2, "text-anchor": "middle", "font-size": 14 }, svg).textContent = NAMES[i];
+      svgEl("text", { x: 80, y: y + 16, "text-anchor": "middle", "font-size": 13, "font-weight": 700 }, svg).textContent = x[i];
+      const mx = 240, my = y + (130 - y) * 0.5;
+      svgEl("rect", { x: mx - 18, y: my - 13, width: 36, height: 22, rx: 4, fill: "#fff" }, svg);
+      svgEl("text", { x: mx, y: my + 3, "text-anchor": "middle", "font-size": 13, "font-weight": 700, fill: col }, svg).textContent = (w[i] > 0 ? "×" : "×") + w[i];
+    });
+    svgEl("circle", { cx: 370, cy: 130, r: 42, fill: "#fff", stroke: "#111", "stroke-width": 3 }, svg);
+    svgEl("text", { x: 370, y: 124, "text-anchor": "middle", "font-size": 12, fill: "#5b5f66" }, svg).textContent = "total";
+    svgEl("text", { x: 370, y: 146, "text-anchor": "middle", "font-size": 22, "font-weight": 700 }, svg).textContent = total;
+    svgEl("line", { x1: 412, y1: 130, x2: 450, y2: 130, stroke: "#111", "stroke-width": 3 }, svg);
+    svgEl("rect", { x: 452, y: 100, width: 100, height: 60, rx: 10, fill: go ? "#e3f5e8" : "#fde8e8", stroke: go ? "#15803d" : "#b91c1c", "stroke-width": 2.5 }, svg);
+    svgEl("text", { x: 502, y: 137, "text-anchor": "middle", "font-size": 18, "font-weight": 700, fill: go ? "#15803d" : "#b91c1c" }, svg).textContent = go ? "Go!" : "Stay home";
+    $("#s5math").innerHTML = NAMES.map((n, i) => `${x[i]}×${w[i] < 0 ? "(" + w[i] + ")" : w[i]}`).join(" + ") + ` = <b>${total}</b>. ${total} ${go ? "reaches" : "is under"} 3, so: <b>${go ? "go to the beach" : "stay home"}</b>.`;
+  }
+  $$("[data-x]", el).forEach(b => b.onclick = () => { const i = +b.dataset.x; x[i] = 1 - x[i]; draw(); });
+  $$("[data-w]", el).forEach(s => s.addEventListener("input", draw));
+  draw();
+};
+
+/* ---------- 6: find the dials ---------- */
+const DAYS = [[1, 1, 0, 1], [1, 1, 1, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [1, 0, 1, 0]];
+const yn = v => v ? "yes" : "no";
+INIT.s6 = el => {
+  const t = $("#s6t");
+  function draw() {
+    const w = $$("[data-w]", el).map(s => +s.value), th = +t.value;
+    $$("[data-w]", el).forEach(s => s.nextElementSibling.textContent = s.value); t.nextElementSibling.textContent = th;
+    let right = 0;
+    $("#s6table").innerHTML = `<tr><th>Sunny</th><th>Warm</th><th>Homework</th><th>Went?</th><th>Total</th><th>Neuron</th></tr>` + DAYS.map(d => {
+      const tot = w[0] * d[0] + w[1] * d[1] + w[2] * d[2], said = tot >= th ? 1 : 0, ok = said === d[3]; if (ok) right++;
+      return `<tr><td>${yn(d[0])}</td><td>${yn(d[1])}</td><td>${yn(d[2])}</td><td><b>${yn(d[3])}</b></td><td class="mono">${tot}</td><td>${yn(said)} <span class="${ok ? "ok" : "no"}">${ok ? "✓" : "✗"}</span></td></tr>`;
+    }).join("");
+    $("#s6score").innerHTML = right === 6 ? `<span class="ok">All 6 correct! The neuron learned the rule.</span>` : `${right} of 6 correct`;
+  }
+  $$("[data-w]", el).forEach(s => s.addEventListener("input", draw)); t.addEventListener("input", draw);
+  $("#s6hint").onclick = () => { [1, 1, -2].forEach((v, i) => $$("[data-w]", el)[i].value = v); t.value = 2; draw(); };
+  draw();
+};
+
+/* ---------- datasets shared by 7 and 9 ---------- */
+function makeData(kind, n, seed) {
+  const r = rng(seed), pts = [];
+  for (let i = 0; i < n; i++) {
+    const c = i % 2; let x, y;
+    if (kind === "blobs") { const cx = c ? 0.45 : -0.45, cy = c ? -0.35 : 0.35; const a = r() * 6.283, d = Math.sqrt(r()) * 0.42; x = cx + Math.cos(a) * d; y = cy + Math.sin(a) * d; }
+    else if (kind === "ring") { const a = r() * 6.283; const d = c ? Math.sqrt(r()) * 0.38 : 0.62 + r() * 0.3; x = Math.cos(a) * d; y = Math.sin(a) * d; }
+    else { const t = r(); const a = t * 5.6 + (c ? Math.PI : 0); const d = 0.1 + t * 0.82; x = Math.cos(a) * d + (r() - 0.5) * 0.08; y = Math.sin(a) * d + (r() - 0.5) * 0.08; }
+    pts.push([x, y, c]);
+  }
+  return pts;
+}
+const C0 = "#d97706", C1 = "#1d4ed8";
+
+/* ---------- 7: drag a line ---------- */
+INIT.s7 = el => {
+  const cv = $("#s7c"); let kind = "blobs", pts = makeData("blobs", 60, 7);
+  let A = [-0.25, -0.85], B = [-0.15, 0.85], drag = null;
+  const toPx = (p, w) => [(p[0] + 1) / 2 * w, (1 - p[1]) / 2 * w], toU = (x, y, w) => [x / w * 2 - 1, 1 - y / w * 2];
+  function side(p) { return (B[0] - A[0]) * (p[1] - A[1]) - (B[1] - A[1]) * (p[0] - A[0]) > 0 ? 1 : 0; }
+  function draw() {
+    const { g, w } = fitCanvas(cv); g.clearRect(0, 0, w, w);
+    let k = 0; pts.forEach(p => { if (side(p) === p[2]) k++; }); const flip = k < pts.length - k; const right = flip ? pts.length - k : k;
+    // shade halves
+    const dx = B[0] - A[0], dy = B[1] - A[1];
+    const far = (p, s) => [p[0] + dx * s, p[1] + dy * s];
+    const P1 = toPx(far(A, -10), w), P2 = toPx(far(B, 10), w);
+    const nx = -dy, ny = dx;
+    for (const sgn of [1, -1]) {
+      const off = [nx * 10 * sgn, ny * 10 * sgn];
+      const Q1 = toPx([far(A, -10)[0] + off[0], far(A, -10)[1] + off[1]], w), Q2 = toPx([far(B, 10)[0] + off[0], far(B, 10)[1] + off[1]], w);
+      const cls = (sgn > 0 ? 1 : 0) ^ (flip ? 1 : 0);
+      g.fillStyle = cls ? "rgba(29,78,216,0.10)" : "rgba(217,119,6,0.10)";
+      g.beginPath(); g.moveTo(...P1); g.lineTo(...P2); g.lineTo(...Q2); g.lineTo(...Q1); g.closePath(); g.fill();
+    }
+    g.strokeStyle = "#111"; g.lineWidth = 3; g.beginPath(); g.moveTo(...P1); g.lineTo(...P2); g.stroke();
+    pts.forEach(p => { const [x, y] = toPx(p, w); const ok = (side(p) ^ (flip ? 1 : 0)) === p[2]; g.fillStyle = p[2] ? C1 : C0; g.beginPath(); g.arc(x, y, 6, 0, 7); g.fill(); if (!ok) { g.strokeStyle = "#b91c1c"; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 10, 0, 7); g.stroke(); } });
+    [A, B].forEach(p => { const [x, y] = toPx(p, w); g.fillStyle = "#fff"; g.strokeStyle = "#111"; g.lineWidth = 3; g.beginPath(); g.arc(x, y, 12, 0, 7); g.fill(); g.stroke(); });
+    $("#s7score").innerHTML = right === pts.length ? `<span class="ok">All ${pts.length} dots sorted correctly!</span>` : `${right} of ${pts.length} dots on the correct side${kind === "ring" ? ". With a ring, no straight line can get them all." : ""}`;
+  }
+  // Grab a handle if the pointer is near one; otherwise drag the whole line.
+  const uAt = e => { const w = cv.clientWidth, r = cv.getBoundingClientRect(); return toU(e.clientX - r.left, e.clientY - r.top, w); };
+  let grab = null, raf7 = 0;
+  const clamp = v => Math.max(-1, Math.min(1, v));
+  const redraw = () => { if (!raf7) raf7 = requestAnimationFrame(() => { raf7 = 0; draw(); }); };
+  cv.style.cursor = "grab";
+  cv.addEventListener("pointerdown", e => {
+    const u = uAt(e), hit = 34 / cv.clientWidth * 2; // ~34px in canvas units
+    const dA = Math.hypot(u[0] - A[0], u[1] - A[1]), dB = Math.hypot(u[0] - B[0], u[1] - B[1]);
+    if (Math.min(dA, dB) < hit) grab = { h: dA < dB ? A : B, off: dA < dB ? [A[0] - u[0], A[1] - u[1]] : [B[0] - u[0], B[1] - u[1]] };
+    else grab = { line: true, u, A0: A.slice(), B0: B.slice() };
+    cv.setPointerCapture(e.pointerId); cv.style.cursor = "grabbing"; e.preventDefault();
+  });
+  cv.addEventListener("pointermove", e => {
+    if (!grab) return; const u = uAt(e);
+    if (grab.h) {
+      const nx = clamp(u[0] + grab.off[0]), ny = clamp(u[1] + grab.off[1]), other = grab.h === A ? B : A;
+      if (Math.hypot(nx - other[0], ny - other[1]) < 0.12) return; // keep the handles apart so the line stays defined
+      grab.h[0] = nx; grab.h[1] = ny;
+    } else {
+      let dx = u[0] - grab.u[0], dy = u[1] - grab.u[1];
+      const xs = [grab.A0[0], grab.B0[0]], ys = [grab.A0[1], grab.B0[1]];
+      dx = Math.max(-1 - Math.min(...xs), Math.min(1 - Math.max(...xs), dx)); dy = Math.max(-1 - Math.min(...ys), Math.min(1 - Math.max(...ys), dy));
+      A[0] = grab.A0[0] + dx; A[1] = grab.A0[1] + dy; B[0] = grab.B0[0] + dx; B[1] = grab.B0[1] + dy;
+    }
+    redraw();
+  });
+  const release = () => { grab = null; cv.style.cursor = "grab"; };
+  cv.addEventListener("pointerup", release); cv.addEventListener("pointercancel", release);
+  $$("[data-d7]", el).forEach(b => b.onclick = () => { setOn($$("[data-d7]", el), b); kind = b.dataset.d7; pts = makeData(kind, kind === "ring" ? 80 : 60, 7); draw(); });
+  SHOW.s7 = draw; draw();
+};
+
+/* ---------- 8: network flow ---------- */
+INIT.s8 = () => {
+  const svg = $("#s8svg"); const L = [3, 4, 4, 2]; const X = [70, 230, 390, 540];
+  const labels = [["Sunny", "Warm", "Homework"], null, null, ["Beach", "Stay home"]];
+  const pos = L.map((n, l) => Array.from({ length: n }, (_, i) => [X[l], 170 + (i - (n - 1) / 2) * 72]));
+  const r = rng(3); const edges = [];
+  const eg = svgEl("g", {}, svg), ng = svgEl("g", {}, svg), pg = svgEl("g", {}, svg);
+  for (let l = 0; l < L.length - 1; l++) for (let i = 0; i < L[l]; i++) for (let j = 0; j < L[l + 1]; j++) {
+    const w = r() * 2 - 1; const e = svgEl("line", { x1: pos[l][i][0], y1: pos[l][i][1], x2: pos[l + 1][j][0], y2: pos[l + 1][j][1], stroke: w > 0 ? "#1d4ed8" : "#b91c1c", "stroke-width": 1 + Math.abs(w) * 3, "stroke-opacity": 0.35 }, eg);
+    edges.push({ l, i, j, el: e });
+  }
+  const nodes = [];
+  pos.forEach((col, l) => col.forEach((p, i) => {
+    const g = svgEl("g", { style: "cursor:pointer", tabindex: 0 }, ng);
+    const c = svgEl("circle", { cx: p[0], cy: p[1], r: 20, fill: "#fff", stroke: "#111", "stroke-width": 2.5 }, g);
+    if (labels[l]) svgEl("text", { x: l ? p[0] + 26 : p[0] - 26, y: p[1] + 5, "text-anchor": l ? "start" : "end", "font-size": 13 }, g).textContent = labels[l][i];
+    nodes.push({ l, i, c }); g.onclick = () => select(l, i); g.onkeydown = e => { if (e.key === "Enter") select(l, i); };
+  }));
+  ["Input layer", "Hidden layer", "Hidden layer", "Output layer"].forEach((t, l) => svgEl("text", { x: X[l], y: 330, "text-anchor": "middle", "font-size": 13, fill: "#5b5f66" }, svg).textContent = t);
+  function select(l, i) {
+    edges.forEach(e => { const on = (e.l === l && e.i === i) || (e.l + 1 === l && e.j === i); e.el.setAttribute("stroke-opacity", on ? 1 : 0.08); });
+    nodes.forEach(n => n.c.setAttribute("fill", n.l === l && n.i === i ? "#fff2b3" : "#fff"));
+    const ins = l ? L[l - 1] : 0, outs = l < L.length - 1 ? L[l + 1] : 0;
+    $("#s8info").textContent = `This neuron has ${ins} incoming and ${outs} outgoing connections, each with its own dial.`;
+  }
+  let busy = false;
+  $("#s8go").onclick = async () => {
+    if (busy) return; busy = true; edges.forEach(e => e.el.setAttribute("stroke-opacity", 0.35)); nodes.forEach(n => n.c.setAttribute("fill", "#fff")); $("#s8info").textContent = "";
+    for (let l = 0; l < L.length; l++) {
+      nodes.filter(n => n.l === l).forEach(n => n.c.setAttribute("fill", "#bcd0f7"));
+      if (l === L.length - 1) break;
+      const dots = edges.filter(e => e.l === l).map(e => ({ e, d: svgEl("circle", { r: 5, fill: "#1d4ed8" }, pg) }));
+      const t0 = performance.now();
+      await new Promise(res => { const step = t => { const f = Math.min(1, (t - t0) / 650); dots.forEach(({ e, d }) => { const x1 = +e.el.getAttribute("x1"), y1 = +e.el.getAttribute("y1"), x2 = +e.el.getAttribute("x2"), y2 = +e.el.getAttribute("y2"); d.setAttribute("cx", x1 + (x2 - x1) * f); d.setAttribute("cy", y1 + (y2 - y1) * f); }); if (f < 1) requestAnimationFrame(step); else res(); }; requestAnimationFrame(step); });
+      dots.forEach(({ d }) => d.remove());
+    }
+    nodes.filter(n => n.l === L.length - 1).forEach((n, k) => n.c.setAttribute("fill", k === 0 ? "#86efac" : "#fff"));
+    $("#s8info").textContent = "The output with the strongest signal is the answer.";
+    busy = false;
+  };
+};
+
+/* ---------- 9: training playground ---------- */
+function makeNet(sizes, seed) {
+  const r = rng(seed); const W = [], b = [];
+  for (let l = 0; l < sizes.length - 1; l++) { const s = Math.sqrt(2 / (sizes[l] + sizes[l + 1])) * 1.7; W.push(Array.from({ length: sizes[l + 1] }, () => Array.from({ length: sizes[l] }, () => (r() * 2 - 1) * s))); b.push(Array(sizes[l + 1]).fill(0)); }
+  return { sizes, W, b };
+}
+function netForward(net, x) {
+  const acts = [x];
+  for (let l = 0; l < net.W.length; l++) {
+    const a = acts[l], last = l === net.W.length - 1;
+    acts.push(net.W[l].map((row, j) => { let s = net.b[l][j]; for (let i = 0; i < a.length; i++) s += row[i] * a[i]; return last ? 1 / (1 + Math.exp(-s)) : Math.tanh(s); }));
+  }
+  return acts;
+}
+function netTrainOne(net, x, y, lr) {
+  const acts = netForward(net, x); const Lc = net.W.length;
+  let delta = [acts[Lc][0] - y];
+  for (let l = Lc - 1; l >= 0; l--) {
+    const a = acts[l]; const prev = l > 0 ? a.map(() => 0) : null;
+    for (let j = 0; j < delta.length; j++) { const row = net.W[l][j]; for (let i = 0; i < a.length; i++) { if (prev) prev[i] += row[i] * delta[j]; row[i] -= lr * delta[j] * a[i]; } net.b[l][j] -= lr * delta[j]; }
+    if (prev) delta = prev.map((v, i) => v * (1 - a[i] * a[i]));
+  }
+}
+INIT.s9 = el => {
+  const cv = $("#s9c"); let kind = "blobs", n = 4, pts, net, rounds, running = false, raf;
+  function reset() { running = false; cancelAnimationFrame(raf); pts = makeData(kind, 200, 11); net = makeNet([2, n, n, 1], 5 + n); rounds = 0; $("#s9train").textContent = "Train"; draw(); }
+  function acc() { let k = 0; pts.forEach(p => { if ((netForward(net, [p[0], p[1]])[3][0] > 0.5 ? 1 : 0) === p[2]) k++; }); return k / pts.length; }
+  function draw() {
+    const { g, w } = fitCanvas(cv); const G = 44, s = w / G;
+    for (let i = 0; i < G; i++) for (let j = 0; j < G; j++) {
+      const x = (i + 0.5) / G * 2 - 1, y = 1 - (j + 0.5) / G * 2; const p = netForward(net, [x, y])[3][0];
+      const t = Math.abs(p - 0.5) * 2 * 0.55; g.fillStyle = p > 0.5 ? `rgba(29,78,216,${t})` : `rgba(217,119,6,${t})`; g.fillStyle = mixWhite(p > 0.5 ? [29, 78, 216] : [217, 119, 6], t); g.fillRect(i * s, j * s, s + 1, s + 1);
+    }
+    pts.forEach(p => { g.fillStyle = p[2] ? C1 : C0; g.strokeStyle = "#fff"; g.lineWidth = 1.5; g.beginPath(); g.arc((p[0] + 1) / 2 * w, (1 - p[1]) / 2 * w, 4.5, 0, 7); g.fill(); g.stroke(); });
+    $("#s9stat").textContent = `Practice rounds: ${rounds.toLocaleString()}   Correct: ${pct(acc())}`;
+  }
+  function mixWhite(c, t) { return `rgb(${c.map(v => Math.round(255 + (v - 255) * t)).join(",")})`; }
+  function loop() {
+    for (let e = 0; e < 4; e++) { for (let k = 0; k < pts.length; k++) { const p = pts[(k * 7919 + rounds) % pts.length]; netTrainOne(net, [p[0], p[1]], p[2], 0.04); } rounds++; }
+    draw(); if (running && rounds < 4000) raf = requestAnimationFrame(loop); else { running = false; $("#s9train").textContent = "Train"; }
+  }
+  $("#s9train").onclick = () => { if (running) { running = false; $("#s9train").textContent = "Train"; return; } running = true; $("#s9train").textContent = "Pause"; raf = requestAnimationFrame(loop); };
+  $("#s9reset").onclick = reset;
+  $$("[data-d9]", el).forEach(b => b.onclick = () => { setOn($$("[data-d9]", el), b); kind = b.dataset.d9; reset(); });
+  $$("[data-n9]", el).forEach(b => b.onclick = () => { setOn($$("[data-n9]", el), b); n = +b.dataset.n9; reset(); });
+  SHOW.s9 = draw; HIDE.s9 = () => { running = false; $("#s9train").textContent = "Train"; };
+  reset();
+};
+
+/* ---------- 10: guess, check, nudge ---------- */
+INIT.s10 = () => {
+  const NAMES = ["Sunny", "Warm", "Homework", "Starting point"]; let w, k, hist;
+  const sig = z => 1 / (1 + Math.exp(-z));
+  function reset() { w = [0, 0, 0, 0]; k = 0; hist = [avgErr()]; render(null); }
+  function avgErr() { return DAYS.reduce((s, d) => s + Math.abs(d[3] - sig(w[0] * d[0] + w[1] * d[1] + w[2] * d[2] + w[3])), 0) / DAYS.length; }
+  function round() {
+    const d = DAYS[k % DAYS.length]; k++; const x = [d[0], d[1], d[2], 1]; const p = sig(x.reduce((s, v, i) => s + v * w[i], 0));
+    const nudge = x.map(v => 1.2 * (d[3] - p) * v); w = w.map((v, i) => v + nudge[i]); hist.push(avgErr()); return { d, p, nudge };
+  }
+  function render(info) {
+    if (info) { const { d, p } = info; $("#s10ex").innerHTML = `<b>Example:</b> sunny ${yn(d[0])}, warm ${yn(d[1])}, homework ${yn(d[2])}.<br><b>Guess:</b> ${pct(p)} sure they went. <b>Right answer:</b> ${d[3] ? "went" : "stayed home"}. ${Math.abs(d[3] - p) < 0.2 ? "Close!" : "Off, so nudge the dials."}`; }
+    else $("#s10ex").innerHTML = `All dials start at 0, so every guess is 50/50.`;
+    $("#s10dials").innerHTML = w.map((v, i) => { const n = info ? info.nudge[i] : 0; const arrow = Math.abs(n) < 0.005 ? "" : n > 0 ? `<span class="ok">▲ ${n.toFixed(2)}</span>` : `<span class="no">▼ ${n.toFixed(2)}</span>`; const pos = Math.max(0, Math.min(100, 50 + v * 6)); return `<div style="display:grid;grid-template-columns:8.5em minmax(0,1fr) 3.5em 5em;gap:8px;align-items:center;font-size:0.85em"><span>${NAMES[i]}</span><span style="position:relative;height:10px;background:var(--soft);border-radius:5px"><span style="position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:#999"></span><span style="position:absolute;left:calc(${pos}% - 7px);top:-2px;width:14px;height:14px;border-radius:50%;background:${v >= 0 ? "#1d4ed8" : "#b91c1c"}"></span></span><span class="mono" style="text-align:right">${v.toFixed(2)}</span><span class="mono small">${arrow}</span></div>`; }).join("");
+    const svg = $("#s10chart"); svg.innerHTML = ""; const W = 440, H = 120, M = 30;
+    svgEl("line", { x1: M, x2: W - 8, y1: H - 20, y2: H - 20, stroke: "#999" }, svg); svgEl("line", { x1: M, x2: M, y1: 8, y2: H - 20, stroke: "#999" }, svg);
+    svgEl("text", { x: M, y: H - 4, "font-size": 11, fill: "#5b5f66" }, svg).textContent = `Rounds: ${k}    Days it gets right: ${DAYS.filter(d => (sig(w[0] * d[0] + w[1] * d[1] + w[2] * d[2] + w[3]) > 0.5 ? 1 : 0) === d[3]).length} of 6`;
+    svgEl("text", { x: M - 4, y: 16, "font-size": 11, fill: "#5b5f66", "text-anchor": "end" }, svg).textContent = "Error";
+    const N = Math.max(20, hist.length - 1); let d = ""; hist.forEach((v, i) => d += (i ? "L" : "M") + (M + i / N * (W - M - 8)).toFixed(1) + "," + (H - 20 - v / 0.5 * (H - 30)).toFixed(1));
+    svgEl("path", { d, fill: "none", stroke: "#1d4ed8", "stroke-width": 2.5 }, svg);
+  }
+  let busy = false;
+  $("#s10one").onclick = () => render(round());
+  $("#s10many").onclick = async () => { if (busy) return; busy = true; let info; for (let i = 0; i < 100; i++) { info = round(); if (i % 4 === 3) { render(info); await sleep(16); } } render(info); busy = false; };
+  $("#s10reset").onclick = reset; reset();
+};
+
+/* ---------- 11: digits ---------- */
+function digitPredict(v) {
+  const h = DIGITS.W1[0].map((_, j) => { let s = DIGITS.b1[j]; for (let i = 0; i < 64; i++) s += v[i] * DIGITS.W1[i][j]; return Math.max(0, s); });
+  const o = DIGITS.W2[0].map((_, k) => { let s = DIGITS.b2[k]; for (let j = 0; j < h.length; j++) s += h[j] * DIGITS.W2[j][k]; return s; });
+  const m = Math.max(...o), e = o.map(v => Math.exp(v - m)), t = e.reduce((a, b) => a + b, 0); return e.map(v => v / t);
+}
+INIT.s11 = () => {
+  const cv = $("#s11pad"), g = cv.getContext("2d"); let drawing = false, lastP = null, dirty = false;
+  function clear() { g.fillStyle = "#fff"; g.fillRect(0, 0, 280, 280); $("#s11mini").innerHTML = "<i></i>".repeat(64); renderBars($("#s11bars"), [...Array(10)].map((_, i) => ({ label: String(i), p: 0, v: "" })), 1); dirty = false; }
+  const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * 280, (e.clientY - r.top) / r.height * 280]; };
+  cv.addEventListener("pointerdown", e => { drawing = true; lastP = pt(e); cv.setPointerCapture(e.pointerId); stroke(e); });
+  cv.addEventListener("pointermove", e => { if (drawing) stroke(e); });
+  const end = () => { if (drawing) { drawing = false; predict(); } };
+  cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
+  function stroke(e) { const p = pt(e); g.strokeStyle = "#111"; g.lineWidth = 24; g.lineCap = "round"; g.lineJoin = "round"; g.beginPath(); g.moveTo(...lastP); g.lineTo(...p); g.stroke(); lastP = p; dirty = true; }
+  function predict() {
+    if (!dirty) return;
+    const d = g.getImageData(0, 0, 280, 280).data; let x0 = 280, y0 = 280, x1 = 0, y1 = 0;
+    for (let y = 0; y < 280; y++) for (let x = 0; x < 280; x++) if (d[(y * 280 + x) * 4] < 128) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    if (x1 < x0) return;
+    const side = Math.max(x1 - x0, y1 - y0) * 1.15 + 10, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    const v = new Array(64).fill(0);
+    for (let gy = 0; gy < 8; gy++) for (let gx = 0; gx < 8; gx++) {
+      let s = 0, c = 0;
+      for (let sy = 0; sy < 6; sy++) for (let sx = 0; sx < 6; sx++) { const px = Math.round(cx - side / 2 + (gx + (sx + 0.5) / 6) * side / 8), py = Math.round(cy - side / 2 + (gy + (sy + 0.5) / 6) * side / 8); if (px >= 0 && px < 280 && py >= 0 && py < 280) s += 1 - d[(py * 280 + px) * 4] / 255; c++; }
+      v[gy * 8 + gx] = s / c;
+    }
+    const mx = Math.max(...v) || 1; for (let i = 0; i < 64; i++) v[i] = Math.min(1, v[i] / mx * 1.25);
+    $("#s11mini").innerHTML = v.map(a => `<i style="background:rgb(${255 - a * 240},${255 - a * 240},${255 - a * 240})"></i>`).join("");
+    const p = digitPredict(v); const best = p.indexOf(Math.max(...p));
+    renderBars($("#s11bars"), p.map((q, i) => ({ label: String(i), p: q, cls: i === best ? "hl" : "" })), 1);
+  }
+  $("#s11clear").onclick = clear; clear();
+};
+
+/* ---------- 12: black box weights ---------- */
+function heatColor(v, m) { const a = Math.min(1, Math.abs(v) / m); const c = v >= 0 ? [29, 78, 216] : [217, 119, 6]; return `rgb(${c.map(x => Math.round(255 + (x - 255) * a)).join(",")})`; }
+INIT.s12 = () => {
+  const box = $("#s12neurons");
+  box.innerHTML = Array.from({ length: 32 }, (_, j) => `<button class="tog" data-h="${j}" style="aspect-ratio:1;padding:0;border-radius:50%;font-size:0.7em">${j + 1}</button>`).join("");
+  function show(j) {
+    $$("[data-h]").forEach(b => b.classList.toggle("on", +b.dataset.h === j));
+    const ws = DIGITS.W1.map(row => row[j]); const m = Math.max(...ws.map(Math.abs));
+    $("#s12heat").innerHTML = ws.map(v => `<i style="background:${heatColor(v, m)}" title="${v}"></i>`).join("");
+    const out = DIGITS.W2[j]; const top = out.map((v, k) => [k, v]).sort((a, b) => b[1] - a[1])[0];
+    $("#s12info").innerHTML = `<b>Neuron ${j + 1}</b><br>Its first eight dials: <span class="mono">${ws.slice(0, 8).map(v => v.toFixed(2)).join(", ")}</span>, and 56 more.<br><br>The grid shows all 64 dials, one for each square of the drawing. Blue pushes up, orange pushes down.<br><br>It pushes hardest toward the answer "${top[0]}", but it also affects every other answer. What is it looking for? Nobody can say for sure.`;
+  }
+  $$("[data-h]").forEach(b => b.onclick = () => show(+b.dataset.h)); show(0);
+};
+
+/* ---------- 14: overfitting ---------- */
+INIT.s14 = () => {
+  const r = rng(21); const f = x => Math.sin(x * 2.4) * 0.8;
+  const train = Array.from({ length: 10 }, (_, i) => { const x = -0.95 + i * 1.9 / 9 + (r() - 0.5) * 0.08; return [x, f(x) + (r() - 0.5) * 0.5]; });
+  const test = Array.from({ length: 10 }, (_, i) => { const x = -0.88 + i * 1.76 / 9 + 0.09; return [x, f(x) + (r() - 0.5) * 0.5]; });
+  function fit(deg) {
+    const n = deg + 1, A = Array.from({ length: n }, () => Array(n + 1).fill(0));
+    train.forEach(([x, y]) => { const p = Array.from({ length: n }, (_, i) => x ** i); for (let i = 0; i < n; i++) { for (let j = 0; j < n; j++) A[i][j] += p[i] * p[j]; A[i][n] += p[i] * y; } });
+    for (let i = 0; i < n; i++) A[i][i] += 1e-9;
+    for (let i = 0; i < n; i++) { let m = i; for (let k = i + 1; k < n; k++) if (Math.abs(A[k][i]) > Math.abs(A[m][i])) m = k; [A[i], A[m]] = [A[m], A[i]]; for (let k = 0; k < n; k++) if (k !== i) { const c = A[k][i] / A[i][i]; for (let j = i; j <= n; j++) A[k][j] -= c * A[i][j]; } }
+    return A.map((row, i) => row[n] / row[i]);
+  }
+  const ev = (c, x) => c.reduce((s, v, i) => s + v * x ** i, 0);
+  const err = (c, pts) => pts.reduce((s, [x, y]) => s + (ev(c, x) - y) ** 2, 0) / pts.length;
+  const svg = $("#s14svg"), W = 440, H = 280; const X = x => 20 + (x + 1) / 2 * (W - 40), Y = y => H / 2 - y * (H / 2 - 20) / 1.4;
+  function draw() {
+    const deg = +$("#s14deg").value; $("#s14dv").textContent = deg; const c = fit(deg);
+    svg.innerHTML = ""; svgEl("line", { x1: 0, x2: W, y1: Y(0), y2: Y(0), stroke: "#eceef2" }, svg);
+    let d = "", pen = false;
+    for (let i = 0; i <= 200; i++) { const x = -1 + i / 100; const y = ev(c, x); if (Math.abs(y) > 1.6) { pen = false; continue; } d += (pen ? "L" : "M") + X(x).toFixed(1) + "," + Y(y).toFixed(1); pen = true; }
+    svgEl("path", { d, fill: "none", stroke: "#1d4ed8", "stroke-width": 3 }, svg);
+    train.forEach(([x, y]) => svgEl("circle", { cx: X(x), cy: Y(y), r: 6, fill: "#111" }, svg));
+    test.forEach(([x, y]) => svgEl("circle", { cx: X(x), cy: Y(y), r: 6, fill: "#fff", stroke: "#d97706", "stroke-width": 3 }, svg));
+    const e1 = err(c, train), e2 = err(c, test);
+    renderBars($("#s14bars"), [{ label: "Error on practice", p: Math.min(e1, 1), v: e1.toFixed(2), cls: "goodbar" }, { label: "Error on new dots", p: Math.min(e2, 1), v: e2 > 99 ? "huge" : e2.toFixed(2), cls: "badbar" }], 0.6);
+  }
+  $("#s14deg").addEventListener("input", draw); draw();
+};
+
+/* ---------- 15: biased data ---------- */
+INIT.s15 = el => {
+  const r = rng(5);
+  function sample(group, n) { const out = []; while (out.length < n) { const x = 0.03 + r() * 0.94, y = r(); const b = group ? 0.3 : 0.62; if (Math.abs(y - b) < 0.04) continue; out.push([x, y, group, y > b ? 1 : 0]); } return out; }
+  const testA = sample(0, 400), testB = sample(1, 400);
+  const svg = $("#s15svg"), W = 440, H = 300, X = x => 10 + x * (W - 20), Y = y => H - 10 - y * (H - 20);
+  function train(share) {
+    const N = 400, nb = Math.max(2, Math.round(N * share)); const data = [...sample(0, N - nb), ...sample(1, nb)];
+    let w = [0, 0, 0]; const sig = z => 1 / (1 + Math.exp(-z));
+    for (let it = 0; it < 3000; it++) { const gr = [0, 0, 0]; data.forEach(([x, y, , t]) => { const p = sig(w[0] * x + w[1] * y + w[2]); const e = p - t; gr[0] += e * x; gr[1] += e * y; gr[2] += e; }); w = w.map((v, i) => v - 10 * gr[i] / data.length); }
+    return { w, data };
+  }
+  function draw(share) {
+    const { w, data } = train(share); const pred = ([x, y]) => (w[0] * x + w[1] * y + w[2]) > 0 ? 1 : 0;
+    svg.innerHTML = "";
+    data.forEach(([x, y, g, t]) => { const col = t ? "#1d4ed8" : "#d97706"; const a = { fill: t ? col : "#fff", stroke: col, "stroke-width": 2 }; if (g) svgEl("rect", { x: X(x) - 4, y: Y(y) - 4, width: 8, height: 8, ...a }, svg); else svgEl("circle", { cx: X(x), cy: Y(y), r: 4, ...a }, svg); });
+    const yAt = x => -(w[0] * x + w[2]) / w[1];
+    svgEl("line", { x1: X(0), y1: Y(yAt(0)), x2: X(1), y2: Y(yAt(1)), stroke: "#111", "stroke-width": 3 }, svg);
+    const accA = testA.filter(p => pred(p) === p[3]).length / 400, accB = testB.filter(p => pred(p) === p[3]).length / 400;
+    renderBars($("#s15bars"), [{ label: "Correct for Group A", p: accA, cls: "goodbar" }, { label: "Correct for Group B", p: accB, cls: accB < 0.85 ? "badbar" : "goodbar" }], 1);
+  }
+  $$("[data-b15]", el).forEach(b => b.onclick = () => { setOn($$("[data-b15]", el), b); draw(+b.dataset.b15); });
+  draw(0.5);
+};
+
+/* ---------- 17: robot ---------- */
+INIT.s17 = () => {
+  const WALLS = new Set(["1,1", "2,1", "3,1", "3,2", "1,3", "1,4", "3,4", "4,4"]); const START = [0, 5], GOAL = [5, 0];
+  const DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]], ARROW = ["⬆", "➡", "⬇", "⬅"], LABEL = { F: "Forward", L: "Turn left", R: "Turn right" };
+  let prog = [], running = false;
+  const cells = []; $("#s17grid").innerHTML = ""; for (let y = 0; y < 6; y++) for (let x = 0; x < 6; x++) { const d = document.createElement("div"); if (WALLS.has(x + "," + y)) d.className = "wall"; $("#s17grid").appendChild(d); cells.push(d); }
+  const cell = (x, y) => cells[y * 6 + x];
+  function paint(p, dir, trail) { cells.forEach((c, i) => { const x = i % 6, y = Math.floor(i / 6); c.textContent = ""; if (!WALLS.has(x + "," + y)) c.className = trail && trail.has(x + "," + y) ? "trail" : ""; }); cell(...GOAL).textContent = "⭐"; cell(...p).textContent = ARROW[dir]; }
+  function showProg(now) { $("#s17prog").innerHTML = prog.length ? prog.map((c, i) => `<span class="${i === now ? "now" : ""}">${i + 1}. ${LABEL[c]}</span>`).join("") : `<span class="muted" style="background:none">Your instructions will appear here.</span>`; }
+  paint(START, 0); showProg(-1);
+  document.querySelectorAll("[data-c]").forEach(b => b.onclick = () => { if (running) return; prog.push(b.dataset.c); showProg(-1); });
+  $("#s17undo").onclick = () => { if (!running) { prog.pop(); showProg(-1); } };
+  $("#s17clear").onclick = () => { if (!running) { prog = []; showProg(-1); paint(START, 0); $("#s17msg").innerHTML = "&nbsp;"; } };
+  $("#s17buggy").onclick = () => { if (running) return; prog = ["F", "F", "F", "F", "F", "R", "F", "F", "R", "F", "F"]; showProg(-1); paint(START, 0); $("#s17msg").textContent = "Someone wrote these to reach the star. Run them and see what happens."; };
+  $("#s17run").onclick = async () => {
+    if (running || !prog.length) return; running = true; let p = START.slice(), dir = 0; const trail = new Set([p.join(",")]); paint(p, dir, trail); $("#s17msg").innerHTML = "&nbsp;";
+    for (let i = 0; i < prog.length; i++) {
+      showProg(i); await sleep(380); const c = prog[i];
+      if (c === "L") dir = (dir + 3) % 4; else if (c === "R") dir = (dir + 1) % 4;
+      else { const n = [p[0] + DIRS[dir][0], p[1] + DIRS[dir][1]]; if (n[0] < 0 || n[0] > 5 || n[1] < 0 || n[1] > 5 || WALLS.has(n.join(","))) { $("#s17msg").innerHTML = `<span class="no">Bump!</span> Step ${i + 1} sent the robot into a wall. It did exactly what it was told.`; paint(p, dir, trail); running = false; return; } p = n; trail.add(p.join(",")); }
+      paint(p, dir, trail);
+    }
+    showProg(-1);
+    $("#s17msg").innerHTML = p[0] === GOAL[0] && p[1] === GOAL[1] ? `<span class="ok">You reached the star!</span>` : `The robot finished all the steps but is not on the star.`;
+    running = false;
+  };
+};
+
+/* ---------- 18: count letters ---------- */
+INIT.s18 = () => {
+  function update() {
+    const w = $("#s18w").value, l = ($("#s18l").value || "r").toLowerCase(); const real = [...w.toLowerCase()].filter(c => c === l).length;
+    let items;
+    if (w.toLowerCase() === "strawberry" && l === "r") items = [[2, .61], [3, .28], [1, .08]];
+    else { let h = 0; for (const c of w + l) h = (h * 31 + c.charCodeAt(0)) >>> 0; const r = rng(h + 1); const g = Math.max(0, real + (r() < 0.6 ? (r() < 0.5 ? -1 : 1) : 0)); const pool = [...new Set([g, real, real + 1, Math.max(0, real - 1)])].slice(0, 3); items = pool.map((v, i) => [v, [.55, .3, .1][i]]); }
+    renderBars($("#s18bars"), items.map(([v, p], i) => ({ label: `${v} times`, p, cls: i === 0 ? "hl" : "" })), 1);
+    $("#s18code").textContent = `word = "${w}"\nprint(word.count("${l}"))`;
+    $("#s18out").textContent = "";
+  }
+  $("#s18run").onclick = () => { const w = $("#s18w").value, l = ($("#s18l").value || "r").toLowerCase(); $("#s18out").textContent = "→ " + [...w.toLowerCase()].filter(c => c === l).length; };
+  $("#s18w").addEventListener("input", update); $("#s18l").addEventListener("input", update); update();
+};
+
+/* ---------- 19: console vs app ---------- */
+INIT.s19 = () => {
+  const con = $("#s19con"); let secret, tries;
+  function line(t) { con.appendChild(document.createTextNode(t + "\n")); con.scrollTop = con.scrollHeight; }
+  function ask() { con.appendChild(document.createTextNode("Your guess: ")); const inp = document.createElement("input"); inp.type = "text"; inp.inputMode = "numeric"; inp.setAttribute("aria-label", "Guess"); con.appendChild(inp); inp.addEventListener("keydown", e => { if (e.key !== "Enter") return; const v = parseInt(inp.value, 10); inp.replaceWith(document.createTextNode(inp.value + "\n")); tries++; if (isNaN(v)) line("Please type a number."); else if (v < secret) line("Too low."); else if (v > secret) line("Too high."); else { line(`You got it in ${tries} guesses!`); line("(press New game on the right to restart both)"); return; } ask(); }); }
+  function startCon() { con.textContent = ""; secret = 1 + Math.floor(Math.random() * 20); tries = 0; line("I'm thinking of a number between 1 and 20."); ask(); }
+  let s2, t2;
+  function startApp() { s2 = 1 + Math.floor(Math.random() * 20); t2 = 0; $("#s19msg").textContent = "I'm thinking of a number from 1 to 20. Tap a guess."; $("#s19grid").innerHTML = Array.from({ length: 20 }, (_, i) => `<button data-g="${i + 1}">${i + 1}</button>`).join(""); $$("#s19grid button").forEach(b => b.onclick = () => { if (b.className) return; const v = +b.dataset.g; t2++; if (v < s2) { b.className = "low"; $("#s19msg").textContent = `${v} is too low.`; } else if (v > s2) { b.className = "high"; $("#s19msg").textContent = `${v} is too high.`; } else { b.className = "win"; $("#s19msg").innerHTML = `<b>You got it in ${t2} guesses!</b>`; } }); }
+  $("#s19new").onclick = () => { startCon(); startApp(); };
+  startCon(); startApp();
+};
+
+/* ---------- 20: sample app ---------- */
+const APP_HTML = `<div class="card">
+  <h1>Compliment Machine</h1>
+  <p>Having a rough day? Tap the button.</p>
+  <button id="btn">Give me a compliment</button>
+  <p id="out"></p>
+</div>`;
+const APP_CSS = `body { font-family: Arial, sans-serif; background: #fdf2f8; display: grid; place-items: center; min-height: 90vh; margin: 0; }
+.card { background: white; padding: 24px; border-radius: 16px; text-align: center; max-width: 320px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+h1 { color: #be185d; font-size: 26px; margin-top: 0; }
+button { background: #be185d; color: white; border: none; padding: 12px 20px; border-radius: 999px; font-size: 16px; cursor: pointer; }
+#out { font-size: 20px; min-height: 2em; }`;
+const APP_JS = `const nice = ["You make hard things look easy.", "Your questions make the whole class smarter.", "You have great taste in apps.", "Future you is proud of present you.", "You are better at this than you think."];
+document.getElementById("btn").onclick = function () {
+  const pick = nice[Math.floor(Math.random() * nice.length)];
+  document.getElementById("out").textContent = pick;
+};`;
+function appFile(parts = { html: 1, css: 1, js: 1 }) {
+  return `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>Compliment Machine</title>\n<style>\n${parts.css ? APP_CSS : ""}\n</style>\n</head>\n<body>\n${parts.html ? APP_HTML : ""}\n<script>\n${parts.js ? APP_JS : ""}\n<\/script>\n</body>\n</html>\n`;
+}
+INIT.s20 = () => {
+  const on = { html: 1, css: 1, js: 1 };
+  const render = () => { $("#s20frame").srcdoc = appFile(on); };
+  $$("[data-p]").forEach(b => b.onclick = () => { const k = b.dataset.p; on[k] = on[k] ? 0 : 1; b.classList.toggle("on", !!on[k]); render(); });
+  $("#s20code").textContent = "Content (HTML):\n" + APP_HTML + "\n\nLook (CSS):\n" + APP_CSS + "\n\nActions (JavaScript):\n" + APP_JS;
+  render();
+};
+
+/* ---------- 23: prompt builder ---------- */
+INIT.s23 = () => {
+  const IDEAS = [["Dog breed quiz", "A quiz about dog breeds with photos. I tap the right breed out of four and it keeps score."], ["Study timer", "A study timer with 25 minute focus sessions, 5 minute breaks, and a big start button."], ["Hike planner", "A hike planner where I type a city and it tells me if today is good hiking weather."], ["Rhyme finder", "A rhyme finder for writing song lyrics. I type a word and it shows rhymes I can tap to copy."], ["Flashcards", "A flashcard app where I type my own questions and answers and then quiz myself."]];
+  $("#s23chips").innerHTML = `<span class="small muted" style="align-self:center">Need an idea?</span>` + IDEAS.map((t, i) => `<button data-i="${i}">${esc(t[0])}</button>`).join("");
+  $$("#s23chips button").forEach(b => b.onclick = () => { $("#s23idea").value = IDEAS[+b.dataset.i][1]; build(); });
+  function build() {
+    const idea = $("#s23idea").value.trim() || "[describe your app here]";
+    $("#s23out").value = `Build me an app as a single HTML file.
+
+My app idea: ${idea}
+
+Requirements:
+- Put everything in one .html file, with the HTML, CSS, and JavaScript together. Do not use separate files.
+- It must work just by opening the file in a web browser, with no server, no build step, and nothing to install.
+- It must work well on a phone and on a computer.
+- If the app needs live information from the internet (like weather, photos, words, or facts), choose a free public service for it yourself. I don't know anything about APIs, so pick one that:
+  - needs no account, no sign-up, and no API key,
+  - can be called directly from JavaScript in a static web page with no server (it must allow cross-origin requests, including from a file opened straight from my computer),
+  - is well known and reliable.
+  Don't ask me to get a key or set anything up. If no service like that fits my idea, build the app so it works without live information and tell me what you changed.
+- If live information fails to load, show a friendly message instead of breaking.
+- Keep the design clean, friendly, and easy to read, with large tap targets.
+- Do not use any login, payment, or personal data.
+- Give me the complete file in one code block with nothing left out.
+- After the code, explain in two or three plain sentences how to use the app. I am not a programmer.`;
+  }
+  $("#s23idea").addEventListener("input", build);
+  $("#s23copy").onclick = async () => { const t = $("#s23out"); try { await navigator.clipboard.writeText(t.value); } catch (e) { t.select(); document.execCommand("copy"); } $("#s23msg").textContent = "Copied. Paste it into your AI chat."; setTimeout(() => $("#s23msg").textContent = "", 3000); };
+  build();
+};
+
+/* ---------- 25: build ---------- */
+INIT.s25 = () => {
+  function clean() {
+    let t = $("#s25code").value;
+    const fence = t.match(/```(?:html)?\s*\n([\s\S]*?)```/i); if (fence) t = fence[1];
+    const start = t.search(/<!doctype html|<html/i); if (start > 0) t = t.slice(start);
+    const end = t.toLowerCase().lastIndexOf("</html>"); if (end > -1) t = t.slice(0, end + 7);
+    return t.trim();
+  }
+  const msg = m => { $("#s25msg").textContent = m; };
+  function check() { const t = clean(); if (!t) { msg("Paste your code first."); return null; } if (!/<\w+/.test(t)) { msg("That doesn't look like a web page. Make sure you copied the whole code block."); return null; } msg(""); return t; }
+  $("#s25prev").onclick = () => { const t = check(); if (t) $("#s25frame").srcdoc = t; };
+  $("#s25tab").onclick = () => { const t = check(); if (!t) return; const u = URL.createObjectURL(new Blob([t], { type: "text/html" })); window.open(u, "_blank"); };
+  $("#s25dl").onclick = () => { const t = check(); if (!t) return; let n = $("#s25name").value.trim() || "my-app.html"; if (!/\.html?$/i.test(n)) n += ".html"; download(n, t); msg("Saved. Open the file to use your app."); };
+};
+
+/* ---------- start ---------- */
+window.addEventListener("hashchange", () => { const n = parseInt(location.hash.slice(1), 10); if (Number.isFinite(n) && n - 1 !== cur) go(n - 1); });
+const startHash = parseInt((location.hash || "").slice(1), 10);
+slides[0].classList.add("active");
+go(Number.isFinite(startHash) ? startHash - 1 : 0);
+</script>
+</body>
+</html>
