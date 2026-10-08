@@ -454,16 +454,16 @@ nav.bar button { font-size: 14px; }
   <h1>A model is a huge set of adjustable numbers</h1>
   <div class="cols">
     <div class="text">
-      <p>Inside a model are numbers called parameters. You can think of them as dials. Each dial slightly changes how the model turns its input into a prediction.</p>
-      <p>Here is a tiny model with only three dials. Its job is to draw a curve that passes through the dots.</p>
-      <p>Large language models work the same way, with far more dials. Llama 3.1, one of the largest models whose details are public, has 405 billion parameters, and all of them have to be set correctly.</p>
-      <p class="try">Try it: move the dials until the error reaches zero.</p>
+      <p>Inside a model are numbers called parameters. They are also called weights. Each weight slightly changes how the model turns its input into a prediction.</p>
+      <p>Here is a tiny model with only three weights. Its job is to draw a curve that passes through the dots.</p>
+      <p>Large language models work the same way, with far more weights. Llama 3.1, one of the largest models whose details are public, has 405 billion parameters, and all of them have to be set correctly.</p>
+      <p class="try">Try it: move the weights until the error reaches zero.</p>
     </div>
     <div class="panel stack">
       <svg id="s14svg" viewBox="0 0 440 300" style="width:100%;display:block" role="img" aria-label="Curve fitting"></svg>
-      <label class="sl">Dial A <input type="range" id="s14a" min="-2" max="2" step="0.1" value="0"><output id="s14av">0.0</output></label>
-      <label class="sl">Dial B <input type="range" id="s14b" min="-3" max="3" step="0.1" value="0"><output id="s14bv">0.0</output></label>
-      <label class="sl">Dial C <input type="range" id="s14c" min="-3" max="4" step="0.1" value="0"><output id="s14cv">0.0</output></label>
+      <label class="sl">Weight A <input type="range" id="s14a" min="-2" max="2" step="0.1" value="0"><output id="s14av">0.0</output></label>
+      <label class="sl">Weight B <input type="range" id="s14b" min="-3" max="3" step="0.1" value="0"><output id="s14bv">0.0</output></label>
+      <label class="sl">Weight C <input type="range" id="s14c" min="-3" max="4" step="0.1" value="0"><output id="s14cv">0.0</output></label>
       <div id="s14err" class="big"></div>
     </div>
   </div>
@@ -471,7 +471,7 @@ nav.bar button { font-size: 14px; }
 
 <!-- 15 -->
 <section class="slide" data-init="s15">
-  <h1>Training: how the dials get set</h1>
+  <h1>Training: how the weights get set</h1>
   <div class="cols">
     <div class="text">
       <p>Nobody adjusts the parameters by hand. Instead, the model is shown a piece of text with the next word hidden. It makes a guess, and the guess is compared to the real word.</p>
@@ -480,7 +480,7 @@ nav.bar button { font-size: 14px; }
       <div class="mono" style="font-size:0.75em;line-height:1.7">The → <b>cat</b><br>The cat → <b>sat</b><br>The cat sat → <b>on</b><br>The cat sat on → <b>the</b><br>The cat sat on the → <b>mat</b></div>
     </div>
     <div class="panel stack">
-      <p style="margin:0;font-size:0.85em">The same three-dial model, but now the computer adjusts the dials itself. Each step: check the error, then nudge each dial in the direction that lowers it.</p>
+      <p style="margin:0;font-size:0.85em">The same three-weight model, but now the computer adjusts the weights itself. Each step: check the error, then nudge each weight in the direction that lowers it.</p>
       <svg id="s15svg" viewBox="0 0 440 260" style="width:100%;display:block" role="img" aria-label="Curve fitting during training"></svg>
       <div class="mono" style="font-size:0.8em" id="s15dials"></div>
       <svg id="s15loss" viewBox="0 0 440 120" style="width:100%;display:block" role="img" aria-label="Error over training steps"></svg>
@@ -1118,7 +1118,7 @@ INIT.s15 = () => {
   function step() { let ga = 0, gb = 0, gc = 0; PTS.forEach(([x, y]) => { const e = a * x * x + b * x + c - y; ga += e * x * x; gb += e * x; gc += e; }); const n = PTS.length; a -= lr * 2 * ga / n; b -= lr * 2 * gb / n; c -= lr * 2 * gc / n; steps++; hist.push(mse(a, b, c)); }
   function draw() {
     drawFit($("#s15svg"), a, b, c, 440, 260);
-    $("#s15dials").innerHTML = `Step ${steps}. Dial A = ${a.toFixed(2)}, Dial B = ${b.toFixed(2)}, Dial C = ${c.toFixed(2)}. Error = <b>${hist[hist.length - 1].toFixed(3)}</b>`;
+    $("#s15dials").innerHTML = `Step ${steps}. Weight A = ${a.toFixed(2)}, Weight B = ${b.toFixed(2)}, Weight C = ${c.toFixed(2)}. Error = <b>${hist[hist.length - 1].toFixed(3)}</b>`;
     const L = $("#s15loss"); L.innerHTML = ""; const W = 440, H = 120, M = 28, max = hist[0], N = 600;
     svgEl("line", { x1: M, x2: W - 8, y1: H - 20, y2: H - 20, stroke: "#999" }, L); svgEl("line", { x1: M, x2: M, y1: 8, y2: H - 20, stroke: "#999" }, L);
     svgEl("text", { x: M, y: H - 4, "font-size": 11, fill: "#5b5f66" }, L).textContent = "Training steps";

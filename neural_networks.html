@@ -223,18 +223,18 @@ nav.bar button { font-size: 14px; }
       <p>An artificial neuron is a tiny calculation.</p>
       <ol>
         <li>It takes in a few pieces of information. Here, each is 1 (yes) or 0 (no).</li>
-        <li>Each piece has a dial that says how much it matters. A negative dial pushes toward "no".</li>
-        <li>It multiplies each piece by its dial and adds everything up.</li>
+        <li>Each piece has a weight that says how much it matters. A negative weight pushes toward "no".</li>
+        <li>It multiplies each piece by its weight and adds everything up.</li>
         <li>If the total reaches 3, the answer is yes.</li>
       </ol>
-      <p class="try">Try it: tap the inputs and move the dials. Thicker lines matter more. Red lines push toward "no".</p>
+      <p class="try">Try it: tap the inputs and move the weights. Thicker lines matter more. Red lines push toward "no".</p>
     </div>
     <div class="panel stack">
       <svg id="s5svg" viewBox="0 0 560 260" style="width:100%;display:block" role="img" aria-label="Beach decision neuron"></svg>
       <div class="row" id="s5ins"></div>
-      <label class="sl">Sunny dial <input type="range" min="-5" max="5" step="1" value="2" data-w="0"><output></output></label>
-      <label class="sl">Warm dial <input type="range" min="-5" max="5" step="1" value="2" data-w="1"><output></output></label>
-      <label class="sl">Homework dial <input type="range" min="-5" max="5" step="1" value="-3" data-w="2"><output></output></label>
+      <label class="sl">Sunny weight <input type="range" min="-5" max="5" step="1" value="2" data-w="0"><output></output></label>
+      <label class="sl">Warm weight <input type="range" min="-5" max="5" step="1" value="2" data-w="1"><output></output></label>
+      <label class="sl">Homework weight <input type="range" min="-5" max="5" step="1" value="-3" data-w="2"><output></output></label>
       <div class="small mono" id="s5math"></div>
     </div>
   </div>
@@ -242,18 +242,18 @@ nav.bar button { font-size: 14px; }
 
 <!-- 6 -->
 <section class="slide" data-init="s6">
-  <h1>The dials are what it learns</h1>
+  <h1>The weights are what it learns</h1>
   <div class="cols">
     <div class="text">
-      <p>The dials are the "adjustable numbers" from last week. Learning just means finding dial settings that give the right answers.</p>
-      <p>Here is a record of six past days and what this person actually decided. The neuron does not know the rule. You have to find dial settings that match all six days.</p>
-      <p class="try">Try it: move the dials until every row has a check mark.</p>
+      <p>The weights are the "adjustable numbers" from last week. Learning just means finding weights that give the right answers.</p>
+      <p>Here is a record of six past days and what this person actually decided. The neuron does not know the rule. You have to find weights that match all six days.</p>
+      <p class="try">Try it: move the weights until every row has a check mark.</p>
     </div>
     <div class="panel stack">
       <table class="t" id="s6table"></table>
-      <label class="sl">Sunny dial <input type="range" min="-5" max="5" step="1" value="0" data-w="0"><output></output></label>
-      <label class="sl">Warm dial <input type="range" min="-5" max="5" step="1" value="0" data-w="1"><output></output></label>
-      <label class="sl">Homework dial <input type="range" min="-5" max="5" step="1" value="0" data-w="2"><output></output></label>
+      <label class="sl">Sunny weight <input type="range" min="-5" max="5" step="1" value="0" data-w="0"><output></output></label>
+      <label class="sl">Warm weight <input type="range" min="-5" max="5" step="1" value="0" data-w="1"><output></output></label>
+      <label class="sl">Homework weight <input type="range" min="-5" max="5" step="1" value="0" data-w="2"><output></output></label>
       <label class="sl">Yes if total is at least <input type="range" min="-3" max="6" step="1" value="1" id="s6t"><output></output></label>
       <div class="row"><b id="s6score"></b><button class="btn" id="s6hint">Show a solution</button></div>
     </div>
@@ -288,7 +288,7 @@ nav.bar button { font-size: 14px; }
         <li>The middle layers, called hidden layers, pass it along and combine it.</li>
         <li>The last layer gives the answer.</li>
       </ul>
-      <p>Each neuron's answer becomes an input for every neuron in the next layer. Every connection has its own dial.</p>
+      <p>Each neuron's answer becomes an input for every neuron in the next layer. Every connection has its own weight.</p>
       <p class="try">Try it: send a signal through. Tap any neuron to see its connections.</p>
     </div>
     <div class="panel stack">
@@ -322,14 +322,14 @@ nav.bar button { font-size: 14px; }
   <h1>How a network learns</h1>
   <div class="cols">
     <div class="text">
-      <p>Nobody sets the dials by hand. The network learns them in a loop:</p>
+      <p>Nobody sets the weights by hand. The network learns them in a loop:</p>
       <ol>
         <li><b>Guess.</b> Look at one example and give an answer.</li>
         <li><b>Check.</b> Compare the guess to the right answer.</li>
-        <li><b>Nudge.</b> Turn every dial a tiny bit in the direction that would have made the guess better.</li>
+        <li><b>Nudge.</b> Change every weight a tiny bit in the direction that would have made the guess better.</li>
       </ol>
-      <p>Repeat this millions of times and the dials settle into good positions. Here the neuron learns the six days from two slides ago on its own.</p>
-      <p class="try">Try it: press "One round" a few times and watch the dials move. Then press "100 rounds".</p>
+      <p>Repeat this millions of times and the weights settle into good values. Here the neuron learns the six days from two slides ago on its own.</p>
+      <p class="try">Try it: press "One round" a few times and watch the weights move. Then press "100 rounds".</p>
     </div>
     <div class="panel stack">
       <div id="s10ex" class="small"></div>
@@ -369,10 +369,10 @@ nav.bar button { font-size: 14px; }
   <h1>Nobody knows what every connection means</h1>
   <div class="cols">
     <div class="text">
-      <p>After training, a network is just a huge pile of dial settings. We can see what goes in and what comes out, but the reasons in the middle are hard to read. That is why neural networks are called black boxes.</p>
+      <p>After training, a network is just a huge pile of weights. We can see what goes in and what comes out, but the reasons in the middle are hard to read. That is why neural networks are called black boxes.</p>
       <p>This matters when a network makes an important decision, like approving a loan, and nobody can explain why.</p>
       <p>Researchers are working on this. In large models they have found some neurons that respond to specific ideas, but most connections are still a mystery.</p>
-      <p class="try">Try it: these are the 32 hidden neurons from the number reader you just used. Tap one to see the 64 dials coming into it.</p>
+      <p class="try">Try it: these are the 32 hidden neurons from the number reader you just used. Tap one to see the 64 weights coming into it.</p>
     </div>
     <div class="panel stack">
       <div id="s12neurons" style="display:grid;grid-template-columns:repeat(8,1fr);gap:6px;max-width:360px"></div>
@@ -777,7 +777,7 @@ INIT.s5 = el => {
   draw();
 };
 
-/* ---------- 6: find the dials ---------- */
+/* ---------- 6: find the weights ---------- */
 const DAYS = [[1, 1, 0, 1], [1, 1, 1, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [1, 0, 1, 0]];
 const yn = v => v ? "yes" : "no";
 INIT.s6 = el => {
@@ -893,7 +893,7 @@ INIT.s8 = () => {
     edges.forEach(e => { const on = (e.l === l && e.i === i) || (e.l + 1 === l && e.j === i); e.el.setAttribute("stroke-opacity", on ? 1 : 0.08); });
     nodes.forEach(n => n.c.setAttribute("fill", n.l === l && n.i === i ? "#fff2b3" : "#fff"));
     const ins = l ? L[l - 1] : 0, outs = l < L.length - 1 ? L[l + 1] : 0;
-    $("#s8info").textContent = `This neuron has ${ins} incoming and ${outs} outgoing connections, each with its own dial.`;
+    $("#s8info").textContent = `This neuron has ${ins} incoming and ${outs} outgoing connections, each with its own weight.`;
   }
   let busy = false;
   $("#s8go").onclick = async () => {
@@ -972,8 +972,8 @@ INIT.s10 = () => {
     const nudge = x.map(v => 1.2 * (d[3] - p) * v); w = w.map((v, i) => v + nudge[i]); hist.push(avgErr()); return { d, p, nudge };
   }
   function render(info) {
-    if (info) { const { d, p } = info; $("#s10ex").innerHTML = `<b>Example:</b> sunny ${yn(d[0])}, warm ${yn(d[1])}, homework ${yn(d[2])}.<br><b>Guess:</b> ${pct(p)} sure they went. <b>Right answer:</b> ${d[3] ? "went" : "stayed home"}. ${Math.abs(d[3] - p) < 0.2 ? "Close!" : "Off, so nudge the dials."}`; }
-    else $("#s10ex").innerHTML = `All dials start at 0, so every guess is 50/50.`;
+    if (info) { const { d, p } = info; $("#s10ex").innerHTML = `<b>Example:</b> sunny ${yn(d[0])}, warm ${yn(d[1])}, homework ${yn(d[2])}.<br><b>Guess:</b> ${pct(p)} sure they went. <b>Right answer:</b> ${d[3] ? "went" : "stayed home"}. ${Math.abs(d[3] - p) < 0.2 ? "Close!" : "Off, so nudge the weights."}`; }
+    else $("#s10ex").innerHTML = `All weights start at 0, so every guess is 50/50.`;
     $("#s10dials").innerHTML = w.map((v, i) => { const n = info ? info.nudge[i] : 0; const arrow = Math.abs(n) < 0.005 ? "" : n > 0 ? `<span class="ok">▲ ${n.toFixed(2)}</span>` : `<span class="no">▼ ${n.toFixed(2)}</span>`; const pos = Math.max(0, Math.min(100, 50 + v * 6)); return `<div style="display:grid;grid-template-columns:8.5em minmax(0,1fr) 3.5em 5em;gap:8px;align-items:center;font-size:0.85em"><span>${NAMES[i]}</span><span style="position:relative;height:10px;background:var(--soft);border-radius:5px"><span style="position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:#999"></span><span style="position:absolute;left:calc(${pos}% - 7px);top:-2px;width:14px;height:14px;border-radius:50%;background:${v >= 0 ? "#1d4ed8" : "#b91c1c"}"></span></span><span class="mono" style="text-align:right">${v.toFixed(2)}</span><span class="mono small">${arrow}</span></div>`; }).join("");
     const svg = $("#s10chart"); svg.innerHTML = ""; const W = 440, H = 120, M = 30;
     svgEl("line", { x1: M, x2: W - 8, y1: H - 20, y2: H - 20, stroke: "#999" }, svg); svgEl("line", { x1: M, x2: M, y1: 8, y2: H - 20, stroke: "#999" }, svg);
@@ -1033,7 +1033,7 @@ INIT.s12 = () => {
     const ws = DIGITS.W1.map(row => row[j]); const m = Math.max(...ws.map(Math.abs));
     $("#s12heat").innerHTML = ws.map(v => `<i style="background:${heatColor(v, m)}" title="${v}"></i>`).join("");
     const out = DIGITS.W2[j]; const top = out.map((v, k) => [k, v]).sort((a, b) => b[1] - a[1])[0];
-    $("#s12info").innerHTML = `<b>Neuron ${j + 1}</b><br>Its first eight dials: <span class="mono">${ws.slice(0, 8).map(v => v.toFixed(2)).join(", ")}</span>, and 56 more.<br><br>The grid shows all 64 dials, one for each square of the drawing. Blue pushes up, orange pushes down.<br><br>It pushes hardest toward the answer "${top[0]}", but it also affects every other answer. What is it looking for? Nobody can say for sure.`;
+    $("#s12info").innerHTML = `<b>Neuron ${j + 1}</b><br>Its first eight weights: <span class="mono">${ws.slice(0, 8).map(v => v.toFixed(2)).join(", ")}</span>, and 56 more.<br><br>The grid shows all 64 weights, one for each square of the drawing. Blue pushes up, orange pushes down.<br><br>It pushes hardest toward the answer "${top[0]}", but it also affects every other answer. What is it looking for? Nobody can say for sure.`;
   }
   $$("[data-h]").forEach(b => b.onclick = () => show(+b.dataset.h)); show(0);
 };
