@@ -93,7 +93,7 @@ table.t th { font-weight: 600; }
 /* cards */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(15em, 1fr)); gap: 12px; }
 .card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
-.card h3 { margin: 0 0 4px; font-size: 1em; }
+.card h2, .card h3 { margin: 0 0 4px; font-size: 1em; }
 .card p { margin: 0; font-size: 0.85em; color: var(--muted); }
 
 /* digit pad */
@@ -143,10 +143,18 @@ nav.bar .prog-line { position: absolute; top: -1px; left: 0; height: 2px; backgr
 nav.bar #count { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); }
 nav.bar button { font-size: 14px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* ---------- Accessibility and mobile fixes ---------- */
+/* Stop double-tap zoom and browser swipe gestures, but keep pinch-zoom available */
+html { touch-action: manipulation; overscroll-behavior: none; }
+body { overscroll-behavior: none; overflow-x: hidden; }
+#deck { overscroll-behavior: contain; overflow-x: hidden; }
+@media (max-width: 500px) { table.t { font-size: 0.72em; } table.t th, table.t td { padding: 5px 4px; } }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 </style>
 </head>
 <body>
-<main id="deck">
+<main id="deck" tabindex="0" aria-label="Slides">
 
 <!-- 1 -->
 <section class="slide title-slide">
@@ -169,7 +177,7 @@ nav.bar button { font-size: 14px; }
     </div>
     <div class="panel stack">
       <div class="rules" id="s2rules"></div>
-      <div class="row"><b id="s2score"></b><span class="muted small" id="s2batchname"></span></div>
+      <div class="row"><b id="s2score" aria-live="polite"></b><span class="muted small" id="s2batchname"></span></div>
       <div class="emails" id="s2emails"></div>
       <div class="row"><button class="btn primary" id="s2next">New emails arrive</button></div>
     </div>
@@ -194,7 +202,7 @@ nav.bar button { font-size: 14px; }
         <button class="btn" data-in="2">Signal 3</button>
         <button class="btn primary" id="s3all">All three at once</button>
       </div>
-      <div class="small" id="s3msg">&nbsp;</div>
+      <div class="small" id="s3msg" aria-live="polite">&nbsp;</div>
     </div>
   </div>
 </section>
@@ -255,7 +263,7 @@ nav.bar button { font-size: 14px; }
       <label class="sl">Warm weight <input type="range" min="-5" max="5" step="1" value="0" data-w="1"><output></output></label>
       <label class="sl">Homework weight <input type="range" min="-5" max="5" step="1" value="0" data-w="2"><output></output></label>
       <label class="sl">Yes if total is at least <input type="range" min="-3" max="6" step="1" value="1" id="s6t"><output></output></label>
-      <div class="row"><b id="s6score"></b><button class="btn" id="s6hint">Show a solution</button></div>
+      <div class="row"><b id="s6score" aria-live="polite"></b><button class="btn" id="s6hint">Show a solution</button></div>
     </div>
   </div>
 </section>
@@ -271,8 +279,8 @@ nav.bar button { font-size: 14px; }
     </div>
     <div class="panel stack">
       <div class="row"><button class="btn on" data-d7="blobs">Two groups</button><button class="btn" data-d7="ring">Ring</button></div>
-      <canvas id="s7c" style="width:100%;max-width:520px;aspect-ratio:1;margin:0 auto;border:1px solid var(--line);border-radius:8px"></canvas>
-      <div id="s7score" class="big"></div>
+      <canvas id="s7c" role="img" aria-label="Dots in two colours with a straight dividing line. Drag the line to separate the colours." style="width:100%;max-width:520px;aspect-ratio:1;margin:0 auto;border:1px solid var(--line);border-radius:8px"></canvas>
+      <div id="s7score" aria-live="polite" class="big"></div>
     </div>
   </div>
 </section>
@@ -292,8 +300,8 @@ nav.bar button { font-size: 14px; }
       <p class="try">Try it: send a signal through. Tap any neuron to see its connections.</p>
     </div>
     <div class="panel stack">
-      <svg id="s8svg" viewBox="0 0 600 340" style="width:100%;display:block" role="img" aria-label="Neural network with layers"></svg>
-      <div class="row"><button class="btn primary" id="s8go">Send a signal</button><span class="small muted" id="s8info"></span></div>
+      <svg id="s8svg" viewBox="0 0 600 340" style="width:100%;display:block" role="group" aria-label="Neural network with an input layer, two hidden layers and an output layer. Each neuron is a button that shows its connections."></svg>
+      <div class="row"><button class="btn primary" id="s8go">Send a signal</button><span class="small muted" id="s8info" aria-live="polite"></span></div>
     </div>
   </div>
 </section>
@@ -311,7 +319,7 @@ nav.bar button { font-size: 14px; }
     <div class="panel stack">
       <div class="row"><span class="small">Pattern:</span><button class="btn on" data-d9="blobs">Two groups</button><button class="btn" data-d9="ring">Ring</button><button class="btn" data-d9="spiral">Spiral</button></div>
       <div class="row"><span class="small">Neurons in each hidden layer:</span><button class="btn" data-n9="1">1</button><button class="btn" data-n9="2">2</button><button class="btn on" data-n9="4">4</button><button class="btn" data-n9="8">8</button></div>
-      <canvas id="s9c" style="width:100%;max-width:400px;aspect-ratio:1;margin:0 auto;border:1px solid var(--line);border-radius:8px"></canvas>
+      <canvas id="s9c" role="img" aria-label="Dots in two colours. The background colour shows what the network answers for each spot." style="width:100%;max-width:400px;aspect-ratio:1;margin:0 auto;border:1px solid var(--line);border-radius:8px"></canvas>
       <div class="row"><button class="btn primary" id="s9train">Train</button><button class="btn" id="s9reset">Start over</button><span class="mono small" id="s9stat"></span></div>
     </div>
   </div>
@@ -356,7 +364,7 @@ nav.bar button { font-size: 14px; }
     </div>
     <div class="panel stack">
       <div class="row" style="align-items:flex-start;gap:16px">
-        <canvas id="s11pad" class="pad" width="280" height="280"></canvas>
+        <canvas id="s11pad" role="img" aria-label="Drawing box for a number" class="pad" width="280" height="280"></canvas>
         <div class="stack" style="gap:6px"><span class="small muted">What the network sees:</span><div class="mini8" id="s11mini"></div><button class="btn" id="s11clear">Clear</button></div>
       </div>
       <div class="bars" id="s11bars"></div>
@@ -378,7 +386,7 @@ nav.bar button { font-size: 14px; }
       <div id="s12neurons" style="display:grid;grid-template-columns:repeat(8,1fr);gap:6px;max-width:360px"></div>
       <div class="row" style="align-items:flex-start;gap:18px">
         <div class="heat" id="s12heat" style="max-width:180px"></div>
-        <div class="small" id="s12info" style="flex:1;min-width:12em"></div>
+        <div class="small" id="s12info" aria-live="polite" style="flex:1;min-width:12em"></div>
       </div>
     </div>
   </div>
@@ -398,7 +406,7 @@ nav.bar button { font-size: 14px; }
       <svg id="s14svg" viewBox="0 0 440 280" style="width:100%;display:block" role="img" aria-label="Curve fitting practice and new points"></svg>
       <label class="sl">How bendy <input type="range" id="s14deg" min="1" max="9" step="1" value="1"><output id="s14dv"></output></label>
       <div class="bars" id="s14bars"></div>
-      <div class="small muted"><b style="color:#111">●</b> practice dots &nbsp; <b style="color:var(--orange)">●</b> new dots it never saw</div>
+      <div class="small muted"><b style="color:#111" aria-hidden="true">●</b> practice dots (filled) &nbsp; <b style="color:var(--orange)" aria-hidden="true">○</b> new dots it never saw (hollow)</div>
     </div>
   </div>
 </section>
@@ -426,14 +434,14 @@ nav.bar button { font-size: 14px; }
 <section class="slide">
   <h1>Where neural networks are used today</h1>
   <div class="cards">
-    <div class="card"><h3>Medical scans</h3><p>Spot signs of disease in X-rays, eye scans, and skin photos, often as a second opinion for a doctor.</p></div>
-    <div class="card"><h3>Speech to text</h3><p>Turn your voice into words for captions, dictation, and voice assistants.</p></div>
-    <div class="card"><h3>Translation</h3><p>Translate text and speech between more than a hundred languages.</p></div>
-    <div class="card"><h3>Self-driving cars</h3><p>Recognize lanes, signs, cars, and people from camera images in real time.</p></div>
-    <div class="card"><h3>Weather forecasts</h3><p>Learn from decades of past weather to predict the next days quickly.</p></div>
-    <div class="card"><h3>New medicines</h3><p>Predict the 3D shape of proteins, which helps scientists design new drugs.</p></div>
-    <div class="card"><h3>Your phone</h3><p>Face unlock, photo search, and keyboard suggestions all run small neural networks.</p></div>
-    <div class="card"><h3>Chat AI</h3><p>ChatGPT, Claude, and Gemini are giant neural networks that predict the next word.</p></div>
+    <div class="card"><h2>Medical scans</h2><p>Spot signs of disease in X-rays, eye scans, and skin photos, often as a second opinion for a doctor.</p></div>
+    <div class="card"><h2>Speech to text</h2><p>Turn your voice into words for captions, dictation, and voice assistants.</p></div>
+    <div class="card"><h2>Translation</h2><p>Translate text and speech between more than a hundred languages.</p></div>
+    <div class="card"><h2>Self-driving cars</h2><p>Recognize lanes, signs, cars, and people from camera images in real time.</p></div>
+    <div class="card"><h2>Weather forecasts</h2><p>Learn from decades of past weather to predict the next days quickly.</p></div>
+    <div class="card"><h2>New medicines</h2><p>Predict the 3D shape of proteins, which helps scientists design new drugs.</p></div>
+    <div class="card"><h2>Your phone</h2><p>Face unlock, photo search, and keyboard suggestions all run small neural networks.</p></div>
+    <div class="card"><h2>Chat AI</h2><p>ChatGPT, Claude, and Gemini are giant neural networks that predict the next word.</p></div>
   </div>
 </section>
 
@@ -452,7 +460,7 @@ nav.bar button { font-size: 14px; }
       <div class="row"><button class="btn" data-c="F">Forward</button><button class="btn" data-c="L">Turn left</button><button class="btn" data-c="R">Turn right</button></div>
       <div class="prog" id="s17prog"></div>
       <div class="row"><button class="btn primary" id="s17run">Run</button><button class="btn" id="s17undo">Undo</button><button class="btn" id="s17clear">Clear</button><button class="btn" id="s17buggy">Load instructions with a mistake</button></div>
-      <div id="s17msg" class="small">&nbsp;</div>
+      <div id="s17msg" aria-live="polite" class="small">&nbsp;</div>
     </div>
   </div>
 </section>
@@ -469,14 +477,14 @@ nav.bar button { font-size: 14px; }
     </div>
     <div class="stack">
       <div class="panel stack">
-        <div class="row"><span class="small">Word</span><input type="text" id="s18w" value="strawberry" style="width:10em"><span class="small">Letter</span><input type="text" id="s18l" value="r" maxlength="1" style="width:3em"></div>
+        <div class="row"><label class="small" for="s18w">Word</label><input type="text" id="s18w" value="strawberry" style="width:10em"><label class="small" for="s18l">Letter</label><input type="text" id="s18l" value="r" maxlength="1" style="width:3em"></div>
         <b class="small">The model guessing the answer:</b>
         <div class="bars" id="s18bars"></div>
       </div>
       <div class="panel stack">
         <b class="small">The model writing code instead:</b>
         <div class="code" id="s18code"></div>
-        <div class="row"><button class="btn primary" id="s18run">Run the code</button><span class="big mono" id="s18out"></span></div>
+        <div class="row"><button class="btn primary" id="s18run">Run the code</button><span class="big mono" id="s18out" aria-live="polite"></span></div>
       </div>
     </div>
   </div>
@@ -494,7 +502,7 @@ nav.bar button { font-size: 14px; }
       <p class="small" style="margin:0">This week you will build things with buttons, colors, and pictures, like this version of the same game.</p>
       <div class="appbox stack">
         <div class="applbl">Guess my number</div>
-        <div class="small" id="s19msg">I'm thinking of a number from 1 to 20. Tap a guess.</div>
+        <div class="small" id="s19msg" aria-live="polite">I'm thinking of a number from 1 to 20. Tap a guess.</div>
         <div class="numgrid" id="s19grid"></div>
         <div class="row"><button class="btn" id="s19new">New game</button></div>
       </div>
@@ -543,7 +551,7 @@ nav.bar button { font-size: 14px; }
       <textarea id="s23idea" rows="3" style="width:100%" placeholder="Example: A quiz about dog breeds. It shows a dog photo and four breed names, and I tap the right one. It keeps score."></textarea>
       <div class="chips" id="s23chips"></div>
       <textarea id="s23out" class="prompt-out" readonly aria-label="Finished prompt"></textarea>
-      <div class="row"><button class="btn primary" id="s23copy">Copy prompt</button><span class="small muted" id="s23msg"></span></div>
+      <div class="row"><button class="btn primary" id="s23copy">Copy prompt</button><span class="small muted" id="s23msg" aria-live="polite"></span></div>
     </div>
   </div>
 </section>
@@ -558,8 +566,8 @@ nav.bar button { font-size: 14px; }
       <button class="btn primary" id="s25prev">Preview</button>
       <button class="btn" id="s25tab">Open in a new tab</button>
       <button class="btn" id="s25dl">Download</button>
-      <span class="small">File name</span><input type="text" id="s25name" value="my-app.html" style="width:12em">
-      <span class="small muted" id="s25msg"></span>
+      <label class="small" for="s25name">File name</label><input type="text" id="s25name" value="my-app.html" style="width:12em">
+      <span class="small muted" id="s25msg" aria-live="polite"></span>
     </div>
     <iframe class="view" id="s25frame" title="Your app" style="height:70vh" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads"></iframe>
   </div>
@@ -573,6 +581,8 @@ nav.bar button { font-size: 14px; }
   <span id="count"></span>
   <button class="btn primary" id="next">Next →</button>
 </nav>
+
+<div id="a11y-status" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
 <script>
 const DIGITS = {"W1":[[-0.774,0.094,0.68,-0.173,-0.247,0.01,0.007,0.125,0.639,0.002,0.163,-0.728,0.372,-0.49,-0.739,1.381,-0.545,-0.596,-0.124,-0.073,0.415,0.123,0.458,0.154,-0.034,-0.339,0.368,0.563,0.364,0.04,-0.138,-0.775],[0.639,-0.864,0.794,-1.111,-0.179,-0.103,0.291,0.338,0.025,0.315,0.584,-0.461,-0.096,-0.502,-0.697,0.204,-1.458,-0.497,-0.309,0.512,1.381,-0.491,0.345,0.662,0.406,-1.448,0.8,-0.818,-0.718,-0.691,0.227,-1.068],[0.645,0.095,0.797,-2.668,0.174,-0.532,0.236,-0.185,0.554,0.137,0.944,-0.509,0.19,-0.415,-0.008,0.359,0.036,-0.801,-1.974,0.652,1.282,-0.626,0.938,-0.81,-0.137,-0.316,0.352,-0.425,-0.027,-0.091,0.604,-0.541],[-0.061,0.036,0.92,-1.063,0.143,-0.74,0.495,0.384,0.682,0.223,0.553,-0.016,0.404,0.493,0.136,0.213,0.609,-0.403,-1.428,0.005,0.803,-0.152,0.376,0.517,0.327,0.365,0.39,0.281,0.53,0.483,-0.387,0.023],[0.266,-1.332,0.725,0.076,-0.905,0.266,-0.174,0.54,-0.058,0.271,0.276,0.456,0.258,0.216,-0.095,0.1,-0.264,0.118,-1.493,0.94,1.685,0.542,-0.053,0.184,0.405,0.141,-0.135,0.469,0.748,1.065,0.287,-0.267],[0.679,-1.435,0.362,0.81,-0.517,0.967,-0.506,-0.835,0.357,-0.296,0.64,-0.702,0.358,-0.368,0.086,-0.38,-0.484,0.247,-0.7,0.728,1.501,-0.173,0.112,-0.67,0.531,0.32,-0.418,-0.246,0.203,1.35,0.626,0.37],[0.494,0.413,1.336,0.207,-0.931,0.632,-0.197,-0.926,0.533,-0.096,-0.061,-1.638,0.684,-1.245,-0.506,-0.477,-0.295,0.335,-0.014,0.127,1.027,-0.732,0.94,-0.063,-0.177,0.059,0.03,-0.015,-0.051,0.941,0.105,0.138],[-0.791,0.758,0.276,1.525,-0.138,0.183,-0.048,-0.345,0.046,-1.319,-0.48,-0.133,0.78,-1.167,-0.74,-0.692,-0.015,0.639,0.458,-0.549,0.516,0.046,1.603,-0.267,-0.778,-0.145,1.874,0.622,0.542,0.52,0.867,-0.613],[0.771,-0.227,0.482,-0.121,0.094,-0.672,-1.167,0.142,-0.659,-0.589,-0.182,-0.7,-0.458,0.201,0.098,0.514,-1.039,-0.389,-0.745,0.315,0.958,0.78,0.368,-0.111,1.195,-0.911,0.343,0.116,-0.102,0.388,0.295,-0.158],[0.508,0.665,-0.288,0.031,0.216,1.04,0.344,-0.472,0.519,0.838,0.19,-0.223,-0.235,0.383,0.177,-0.349,-0.274,-0.137,-0.687,-0.433,0.275,-0.499,-0.384,0.083,-0.03,-0.656,-0.16,-0.279,-0.942,-0.36,0.597,0.212],[0.036,0.643,-0.307,-0.131,-0.185,-0.083,1.413,-0.637,0.599,-0.063,-0.06,-0.42,-0.141,0.075,-0.232,0.519,-0.056,-0.216,0.745,0.384,-0.009,0.081,0.526,-1.293,0.216,-0.047,0.787,-0.243,-0.601,-0.036,0.247,-0.475],[-0.981,0.226,-0.018,-0.316,-0.288,-0.958,-0.372,0.164,0.574,0.102,-0.701,0.443,-0.113,0.953,-0.024,-0.013,0.303,0.492,0.313,0.138,0.134,0.26,0.227,-1.211,0.788,-0.643,0.275,0.463,-0.275,-0.456,0.639,0.392],[-0.231,0.378,-0.658,0.258,0.365,0.201,-0.862,0.598,0.047,0.665,0.059,0.01,-0.363,-0.022,0.657,-0.521,-0.606,1.471,0.688,0.09,0.096,0.389,-0.71,-0.144,0.124,-0.422,-0.49,0.206,-0.421,-0.999,0.443,-0.617],[0.085,0.115,-1.25,-0.06,0.604,1.646,0.114,-0.275,-0.008,-0.314,0.759,-1.08,0.207,-0.769,0.749,0.091,-0.59,1.228,1.603,0.057,0.372,-0.376,-0.668,-0.601,0.329,0.098,-0.569,-0.28,-0.861,-0.361,1.344,0.039],[-0.169,0.241,-1.176,-0.04,0.265,0.459,-1.119,-1.24,-0.064,0.097,-0.176,-0.15,0.052,-1.179,0.267,0.497,0.13,0.621,0.789,-0.055,0.272,-0.429,-0.244,-0.166,0.935,-0.087,-0.294,-0.299,-0.851,0.071,1.097,0.234],[-0.842,0.112,-0.261,0.49,0.041,-0.052,-0.426,-1.231,0.47,-0.151,0.074,-0.443,0.327,-0.578,0.213,-0.018,-0.39,-0.024,0.129,-0.328,0.346,0.617,-0.058,0.007,0.796,-0.163,1.534,-1.008,-0.322,0.712,0.144,0.424],[0.248,0.311,-0.783,-0.346,0.3,0.898,0.83,-0.62,-0.326,-0.005,0.214,-0.426,0.152,-0.579,0.459,0.131,-0.815,-0.64,-0.493,-0.072,-0.517,-1.484,-0.395,0.211,0.0,0.498,0.394,-0.644,0.269,0.378,0.022,0.19],[-0.124,0.119,0.023,-0.086,-0.282,1.35,1.14,0.101,0.184,-0.13,-0.15,-0.595,-1.01,0.198,-0.495,0.026,-0.595,-0.267,0.727,-0.747,-0.353,0.153,0.127,0.389,-0.483,0.675,0.815,-0.027,-0.558,0.081,0.364,-0.16],[-1.288,0.343,-0.049,0.205,0.074,-0.124,1.153,-0.753,-0.314,-0.486,-0.738,-0.313,0.126,0.288,-0.064,0.472,-0.565,-0.294,0.34,0.077,-0.783,0.79,0.415,-0.588,0.045,0.142,0.937,-0.012,-0.167,-0.68,0.162,0.354],[-0.729,0.326,-0.449,-0.096,0.377,-1.65,-1.111,0.393,1.05,0.647,-0.318,0.39,0.299,0.214,0.146,-0.55,0.891,0.428,0.47,0.375,-0.516,-0.11,-0.07,-0.835,-0.244,-0.108,0.577,-0.422,0.606,-0.66,0.395,0.305],[0.219,0.289,-0.172,-0.931,0.389,0.091,0.25,1.062,1.21,0.155,-0.002,0.228,-1.57,-0.354,0.581,-0.511,0.345,-0.011,0.588,0.505,-0.031,-0.228,-0.809,0.112,-0.39,-0.501,0.099,0.455,-0.36,-0.557,0.42,-0.477],[-0.598,0.504,-0.247,-0.959,0.306,1.04,1.204,-0.285,0.05,-0.054,-0.384,-0.542,-1.598,0.298,0.383,0.427,-0.482,-0.61,0.168,0.313,0.035,-0.27,0.129,-0.107,0.208,-0.436,-0.401,0.531,-0.856,-1.253,-0.019,-0.199],[-1.664,0.621,-0.508,-0.989,0.58,0.095,-0.625,-1.457,-0.73,-0.627,-0.433,-0.284,0.952,-0.092,0.63,0.156,0.737,-0.463,-0.144,-0.073,-0.166,0.676,0.384,0.08,1.113,-0.463,0.512,0.661,-0.687,-1.414,0.949,0.99],[0.465,0.353,-0.701,-0.154,0.193,0.207,0.151,-1.539,0.49,-0.294,-0.5,1.549,-0.521,-0.285,0.956,-0.507,-0.01,-1.007,0.675,0.591,0.114,-0.336,-0.589,0.268,1.545,-0.573,-0.998,-0.383,0.434,-0.213,0.417,1.804],[-0.781,0.158,-0.142,-1.025,0.036,-0.522,0.752,0.663,-0.602,-0.22,0.515,0.076,0.263,-0.389,0.559,-0.784,-0.957,-1.791,0.233,-0.727,-0.026,-1.871,-0.584,-0.415,-0.617,0.336,0.726,-0.283,0.296,-0.56,-0.08,0.517],[-2.282,0.651,0.521,-0.702,0.835,-0.386,1.377,-0.057,-1.652,-0.004,-0.131,-0.261,-1.003,0.126,-0.204,0.108,-1.272,-0.465,0.284,-0.35,-0.274,-1.008,0.222,0.428,-0.463,0.881,0.14,0.138,0.309,0.283,0.172,0.061],[-0.646,0.302,0.33,-0.219,0.521,-1.092,1.104,-0.143,-1.362,0.263,-0.925,0.223,0.848,0.658,0.205,0.435,0.229,0.045,0.099,0.556,-0.417,0.296,0.183,0.462,-0.617,0.968,0.206,-0.553,0.664,0.327,0.578,0.27],[1.157,-0.442,0.479,-0.31,0.643,-0.705,-0.27,0.484,0.71,-0.3,-0.337,-0.141,0.762,0.127,0.9,-0.106,0.763,0.196,-0.391,0.766,0.139,-0.154,-0.121,0.073,-0.612,1.185,0.27,-0.112,0.392,0.376,0.71,-0.016],[0.079,-0.05,0.082,-1.041,0.153,0.661,-1.051,0.899,1.498,0.357,-0.818,0.045,-1.221,0.021,0.623,-0.818,0.384,-0.353,-0.53,0.54,-0.148,-0.384,0.202,0.364,0.057,0.507,0.521,0.995,-0.122,0.922,0.503,-0.602],[-1.117,-0.229,1.177,-1.374,-0.237,0.494,0.595,-0.028,0.533,-0.176,-0.645,0.366,-2.132,0.389,0.474,0.649,-0.167,-1.096,-0.783,0.524,-0.311,0.435,-0.176,0.431,-0.714,0.197,-0.073,0.359,-0.23,0.504,0.415,0.191],[-1.001,-0.061,1.472,-1.512,-0.142,0.147,-0.701,-0.546,-0.708,0.098,0.029,-0.595,-1.251,0.658,0.543,0.458,0.566,-1.26,-0.215,0.385,-0.053,0.306,-0.031,0.286,-0.445,-0.302,0.038,0.393,-0.166,-0.594,0.695,0.734],[0.291,0.024,0.602,0.007,1.035,-0.275,-0.275,-0.144,-0.375,-1.365,0.007,0.654,-2.327,0.646,1.37,0.831,0.562,-0.677,0.012,0.712,0.275,-1.441,-1.348,1.277,0.469,-0.049,-0.998,0.616,0.219,-1.483,1.096,2.662],[-1.15,-2.247,0.41,0.987,1.037,0.406,1.1,-0.872,-0.858,-0.512,0.323,-1.34,0.133,-0.528,0.104,-1.61,-0.906,-0.318,1.069,-0.43,-0.158,-0.96,0.655,0.13,-0.509,-0.234,0.019,1.085,0.429,-0.07,0.535,-0.131],[-0.536,0.388,0.226,0.883,0.347,-0.354,0.395,-0.497,-0.971,-0.055,-0.37,0.252,0.377,-0.047,0.111,0.401,-0.873,-0.093,0.146,-0.063,0.059,-0.189,0.007,-0.175,0.14,0.523,-0.817,0.692,-0.356,-0.375,-0.506,0.893],[1.344,0.663,-0.149,0.259,0.207,-0.332,0.589,-0.05,-1.166,0.638,-0.59,0.019,0.624,-0.242,0.071,0.277,1.554,0.668,-0.192,0.617,-0.188,-0.362,0.474,0.345,-0.236,0.508,-0.735,-0.16,0.065,-0.507,0.469,0.307],[0.73,1.656,0.398,-0.226,0.559,0.021,0.306,0.618,-0.742,-0.159,-0.731,-0.776,1.458,-0.459,0.456,0.071,0.703,0.709,-1.027,0.67,-0.838,0.312,0.99,0.606,0.01,0.836,0.105,0.892,0.382,-0.093,-0.085,-0.005],[-1.19,0.836,0.463,0.087,0.315,0.66,-0.052,0.373,0.289,-0.04,-0.775,0.667,0.288,-0.432,0.502,-1.267,0.356,-0.218,-0.379,0.086,-0.463,-0.172,-0.089,0.298,0.159,0.421,-0.256,0.748,-0.085,0.709,0.702,-0.357],[0.219,-0.288,0.895,0.147,-0.058,0.361,0.083,-0.118,0.521,-0.057,-0.269,0.552,-0.577,-0.05,0.433,-0.316,0.131,-0.557,0.273,0.259,-0.554,-0.22,-1.037,0.654,-0.612,0.5,-0.073,0.333,0.144,0.847,-0.195,-0.176],[0.958,-1.179,1.35,0.8,0.793,0.202,0.319,-0.309,0.095,-0.576,-0.093,0.475,-2.948,-0.195,0.33,0.57,0.485,0.377,0.368,-0.031,0.228,-0.111,-0.484,0.201,-1.339,0.117,-0.555,-1.002,-0.096,0.687,0.84,-0.506],[2.413,-0.007,2.367,1.548,-0.122,-0.483,-0.852,-0.594,-0.279,-0.607,0.997,-0.128,-2.446,0.021,-0.474,1.112,0.493,1.358,0.641,-1.505,0.454,0.466,-0.599,-0.53,-1.468,0.794,-0.414,-0.11,-1.116,1.133,0.743,-1.4],[0.503,-0.998,0.304,1.32,0.901,0.983,-0.352,-0.405,-0.704,-0.844,-0.496,0.859,0.573,0.677,0.593,-0.604,-1.024,-0.924,-0.416,-0.917,-0.855,0.101,0.458,0.546,1.809,-0.599,0.245,1.596,-1.177,0.408,-0.898,1.299],[-0.028,-2.361,-0.309,0.551,0.056,0.125,0.736,-0.455,-1.175,-0.359,0.55,-0.299,1.58,0.325,0.709,-0.021,-1.289,0.302,-0.711,-0.203,0.513,-0.325,0.108,0.273,0.66,0.655,-1.2,1.316,-0.529,-0.07,-0.323,0.741],[0.913,-0.344,-0.35,0.727,-0.158,-1.039,-0.166,0.006,0.145,0.228,0.03,-0.252,0.646,-0.942,0.411,1.236,-0.008,0.024,-0.18,-0.123,-0.456,0.163,1.431,-0.124,0.29,0.348,-0.674,0.505,0.245,-0.168,-0.183,0.394],[-0.611,0.722,-0.212,0.599,0.77,-0.36,-0.404,0.881,-1.997,0.037,0.29,-1.319,0.537,-0.142,-0.25,0.213,0.43,-0.466,-0.673,0.173,-0.616,-0.197,0.833,1.007,0.976,-0.251,0.04,0.933,0.765,-0.443,-0.805,0.246],[0.008,0.413,-0.248,1.021,0.675,0.989,0.415,0.125,-0.034,-0.094,0.178,0.111,0.489,-1.124,-0.22,-1.018,-0.571,-0.362,0.616,0.0,0.093,-0.237,-1.18,0.209,0.823,-0.152,-0.459,0.764,0.727,-0.748,-0.886,0.224],[1.447,-0.477,-0.696,1.366,0.03,-0.251,0.221,0.389,0.416,0.45,0.102,1.154,-0.31,-0.888,0.007,-0.122,0.233,0.352,0.115,-0.483,-0.049,0.067,0.087,-0.115,0.002,0.082,-1.266,0.073,0.068,0.496,-0.799,-0.519],[1.108,-0.174,-1.026,0.666,0.223,-0.605,-0.612,0.121,-0.293,0.025,-0.267,0.171,0.142,0.15,0.154,0.889,-0.312,0.879,-0.104,-0.599,-0.134,0.611,0.802,-0.192,-0.592,-0.017,-0.99,0.622,-0.533,1.232,-0.714,-0.938],[0.884,-0.27,0.94,-0.208,-0.257,0.167,-0.564,-0.72,0.028,0.073,0.33,-0.681,0.714,0.049,-0.19,-0.605,-0.194,0.462,0.282,0.005,-1.093,0.407,1.012,0.728,0.077,0.1,0.16,2.236,0.161,0.755,-0.193,-0.421],[-0.414,1.312,-0.142,-0.742,-0.43,-1.17,0.394,-0.698,0.21,0.656,0.18,0.527,0.658,0.276,0.1,-1.172,-0.615,-0.016,-0.073,0.588,-0.8,-0.636,0.846,0.925,0.567,0.734,0.743,0.486,-1.531,0.0,-1.147,0.007],[0.68,-0.42,-1.325,0.543,-0.005,-0.372,1.048,-1.834,-1.032,0.113,0.694,1.07,1.364,0.425,0.143,-1.216,-1.69,-0.82,0.271,-0.326,0.414,-0.82,0.602,0.431,0.22,0.185,-0.397,0.425,-0.033,0.614,-0.758,0.354],[0.514,-2.13,0.169,-0.157,0.334,-0.153,-0.223,-0.063,0.704,0.495,1.689,0.649,0.747,0.454,0.017,0.301,0.281,-0.264,-0.738,-0.549,1.298,0.417,1.385,0.023,0.533,-0.449,0.335,0.154,-0.104,0.632,0.237,-0.165],[-0.205,-1.972,0.179,0.457,0.507,-0.893,-0.32,0.728,0.506,0.474,1.734,0.103,-0.039,0.262,-0.003,-0.002,-0.48,-0.691,-0.158,-0.127,0.615,-0.163,-0.001,0.528,1.055,-0.484,1.107,-0.035,0.992,0.337,-0.581,-0.104],[0.104,-0.605,-0.398,1.284,-0.064,0.777,0.608,0.479,-0.214,0.517,0.66,0.604,0.343,-0.55,-0.762,-0.441,-0.091,-0.487,0.232,-0.226,0.252,-0.824,-0.228,0.046,0.193,-0.069,-0.052,-1.026,1.137,-0.253,-0.838,-0.041],[-0.0,0.371,-0.91,0.161,0.212,0.655,0.156,-0.021,0.305,0.511,0.456,-0.249,-0.078,-0.036,-0.265,0.166,-0.322,0.807,-0.254,-0.363,-0.118,-0.427,-0.316,-0.249,0.173,-0.024,-0.682,-0.424,-0.241,-1.195,-0.616,-0.065],[-0.037,0.59,-1.058,-0.213,-0.592,-0.166,-0.301,-0.251,0.113,0.575,0.297,-0.326,0.194,0.578,-0.557,0.19,0.144,0.204,-0.614,-0.064,-0.123,0.291,-0.116,0.342,-0.106,0.368,0.455,0.684,-0.047,0.028,-1.719,0.423],[-1.01,0.194,0.9,-0.666,-1.133,0.443,-0.522,0.457,-0.034,1.529,0.374,-1.356,1.282,0.185,0.105,-0.271,-0.218,-1.205,-0.278,0.69,0.139,0.055,0.992,-0.001,0.084,-0.511,1.132,-0.113,0.679,0.885,0.34,0.659],[1.104,0.294,0.12,-0.238,-0.209,0.423,-0.463,0.161,0.337,0.422,0.652,-0.023,0.384,0.307,-0.723,0.777,-0.212,0.227,-0.182,-0.212,-0.046,0.07,0.23,-0.351,0.954,-0.536,0.069,-0.777,0.226,0.104,-1.451,0.504],[-0.418,0.451,1.164,0.421,-0.558,-1.703,-0.285,0.422,-0.857,-0.703,0.586,0.064,1.111,0.387,-0.063,-0.687,-1.865,-0.178,-0.901,-0.01,0.878,-0.117,-0.468,0.391,-0.336,-0.642,0.461,0.451,-1.288,0.052,0.635,-0.081],[-0.163,0.769,0.381,-0.274,0.698,-0.473,0.65,0.358,-1.448,0.464,0.217,-0.454,1.096,0.647,-0.106,0.039,0.594,1.014,0.378,-0.256,-0.112,-0.006,0.487,-0.058,0.931,-0.192,0.497,-0.542,-0.363,0.04,-0.312,0.206],[0.287,0.522,-0.227,1.381,0.266,-0.235,-0.142,-0.092,-0.896,0.487,-0.355,0.969,0.63,0.819,-0.229,-0.624,0.151,0.862,1.388,0.176,0.509,-0.225,-0.33,0.931,0.381,0.376,0.991,-0.525,0.171,0.478,0.038,0.3],[-0.244,0.355,-0.61,0.299,-0.335,-0.085,-0.581,-0.162,0.528,-0.07,0.215,0.741,0.272,0.677,-0.404,0.157,-0.278,0.611,0.896,0.084,0.092,0.731,-0.238,0.5,-0.127,0.498,0.381,-1.561,0.895,0.409,-0.443,0.083],[-0.567,-0.219,-0.698,-0.037,-0.046,0.086,-0.81,0.272,-0.099,0.396,0.995,-0.377,0.134,0.868,-0.488,0.511,0.445,-0.14,-0.314,-0.037,-0.326,0.307,-0.29,0.716,0.197,0.806,0.461,-0.967,1.048,-0.125,-0.649,0.916],[-0.058,-0.289,-0.357,0.365,-0.182,0.45,-1.703,0.067,-0.607,1.269,-0.252,-0.018,0.119,0.801,-1.266,1.036,0.464,-0.416,0.087,0.2,-0.579,-0.322,-0.352,0.47,0.271,0.557,-0.598,-1.455,-0.199,0.145,-1.664,0.38],[-0.479,-1.632,0.684,-0.863,-1.036,0.368,-2.14,0.171,0.438,0.204,-0.053,-0.39,1.061,0.373,-0.515,0.594,0.551,-1.362,0.9,0.999,0.408,-1.36,-0.761,0.781,-0.282,0.116,0.289,-2.023,0.471,-0.1,0.266,0.869]],"b1":[0.39,0.087,0.456,-0.171,0.804,0.384,0.198,-1.178,-0.432,0.451,0.256,-0.385,-0.901,0.275,0.07,0.562,-0.283,-0.444,-0.22,0.317,0.371,1.041,-0.006,-0.413,1.277,-0.479,-0.368,-0.898,-0.709,0.35,-0.284,0.658],"W2":[[-1.035,-3.249,2.762,1.736,1.858,-1.55,-1.098,-0.453,0.583,-2.411],[-3.772,-1.826,-0.24,2.254,-0.359,0.444,-2.751,-1.506,-0.684,1.654],[0.087,-2.381,-2.85,1.283,0.864,1.6,0.273,1.574,-1.41,-0.765],[-1.29,-1.625,-2.277,-2.927,2.596,0.613,0.999,1.958,-1.697,-0.627],[0.322,-0.398,-1.236,-0.062,0.466,-0.432,0.062,0.631,0.722,-0.221],[-1.325,1.777,0.853,0.825,-0.666,-3.187,0.62,0.231,-0.677,-1.276],[1.389,-0.466,-2.056,-1.629,0.206,0.783,1.5,-0.839,0.239,-0.152],[-0.039,1.639,0.202,1.17,-1.87,-2.966,0.445,0.233,-0.527,-0.692],[-2.971,0.947,-1.573,-0.08,0.672,1.062,-0.416,-2.007,0.859,0.914],[-0.697,0.117,-0.062,0.565,-1.287,0.234,0.592,-0.704,0.735,0.198],[1.141,-1.9,1.151,0.287,0.504,0.958,0.133,-2.054,-1.591,0.808],[1.281,-0.634,0.582,0.756,2.609,-1.635,-1.383,1.574,-2.397,-0.371],[-3.738,2.119,-1.543,1.246,-0.893,-0.273,0.688,-0.184,-0.17,-1.0],[0.328,-0.846,2.041,0.296,-1.838,-1.418,-0.089,-1.404,-0.159,0.859],[-0.542,0.485,-1.473,-0.205,0.705,-0.829,-0.868,0.413,0.614,0.844],[0.506,1.801,-1.802,0.507,-1.503,0.441,0.23,-0.686,-2.808,0.569],[1.287,0.376,-0.972,-2.427,-1.023,0.749,2.096,0.857,-0.305,-0.52],[2.607,-0.279,-0.941,-0.001,-0.404,2.205,0.026,-0.757,-1.175,-1.937],[-0.86,0.552,1.973,-0.251,-3.652,1.536,-0.198,1.462,-1.373,-1.507],[-0.678,0.121,0.698,-0.83,-0.15,-0.099,-0.564,-0.058,0.625,0.817],[0.702,-0.808,0.905,0.204,-2.476,0.503,-2.097,0.676,-0.457,1.292],[0.545,-3.626,0.135,0.707,0.543,0.45,-0.63,-0.271,1.225,-0.039],[-0.43,0.751,1.164,-2.074,0.238,-0.74,0.732,0.591,0.823,-2.007],[-0.399,1.025,-0.854,-2.302,1.0,-0.754,0.195,-0.869,0.778,0.338],[1.076,-1.174,1.008,0.757,-0.678,-0.462,-0.658,0.173,0.803,-0.727],[0.596,0.523,-0.78,-0.751,0.85,0.2,0.403,-2.472,-0.476,0.683],[-2.088,0.705,1.092,-0.546,1.149,1.208,-3.03,-0.857,-1.383,-0.192],[-0.385,1.234,1.562,-1.608,1.331,-0.044,-0.617,1.564,-2.056,-1.721],[0.165,1.343,0.049,-0.562,0.283,0.232,0.618,-2.069,-0.028,-2.18],[-1.843,-2.651,-1.636,2.07,-3.33,1.722,1.212,0.566,0.559,-0.622],[-0.876,0.353,-2.313,-1.595,1.003,-0.631,-1.226,1.074,-0.792,1.132],[0.656,-0.419,1.177,0.201,0.317,-2.197,-0.8,-0.485,0.684,0.395]],"b2":[0.379,-0.813,-0.099,0.055,-0.045,0.304,-0.447,0.232,0.456,-0.35]};
@@ -611,6 +621,7 @@ function go(i) {
   const old = slides[cur].dataset.init; if (old && HIDE[old] && i !== cur) HIDE[old]();
   slides[cur].classList.remove("active"); cur = i; slides[cur].classList.add("active");
   $("#count").textContent = `${cur + 1} / ${slides.length}`;
+  { const h = slides[cur].querySelector("h1"), st = document.getElementById("a11y-status"); if (st) st.textContent = `Slide ${cur + 1} of ${slides.length}: ${h ? h.textContent.trim() : ""}`; }
   $("#progline").style.width = `${(cur + 1) / slides.length * 100}%`;
   $("#prev").disabled = cur === 0; $("#next").disabled = cur === slides.length - 1;
   $("#deck").scrollTop = 0;
@@ -737,7 +748,7 @@ INIT.s4 = el => {
     { h: ["", "Bird", "Plane"], rows: [["How it flies", "Flaps its wings", "Fixed wings and engines"], ["Fuel", "A few seeds and bugs", "Tons of jet fuel"], ["Landing", "Any branch or rooftop", "Needs a long runway"], ["Carries", "Itself", "Hundreds of people"], ["Speed", "Up to about 70 mph", "About 550 mph"]] },
     { h: ["", "Brain", "Neural network"], rows: [["Made of", "Living cells", "Math running on computer chips"], ["Power", "About 20 watts, like a dim light bulb", "Training a big one uses as much electricity as thousands of homes"], ["Learning", "A child learns \"cat\" from a few cats", "Needs thousands or millions of examples"], ["Speed", "Signals travel fairly slowly", "Trillions of calculations per second"], ["Rest", "Needs sleep", "Runs day and night without getting tired"], ["Sharing", "You can't copy what you know into someone else", "Can be copied to millions of computers instantly"]] }
   ];
-  function render(i) { const t = T[i]; $("#s4table").innerHTML = `<tr>${t.h.map(h => `<th>${h}</th>`).join("")}</tr>` + t.rows.map(r => `<tr><td class="muted">${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join(""); }
+  function render(i) { const t = T[i]; $("#s4table").innerHTML = `<tr>${t.h.map(h => h ? `<th scope="col">${h}</th>` : `<th scope="col"><span class="sr-only">Compared on</span></th>`).join("")}</tr>` + t.rows.map(r => `<tr><td class="muted">${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join(""); }
   $$("[data-cmp]", el).forEach(b => b.onclick = () => { setOn($$("[data-cmp]", el), b); render(+b.dataset.cmp); });
   render(0);
 };
@@ -883,10 +894,10 @@ INIT.s8 = () => {
   }
   const nodes = [];
   pos.forEach((col, l) => col.forEach((p, i) => {
-    const g = svgEl("g", { style: "cursor:pointer", tabindex: 0 }, ng);
+    const g = svgEl("g", { style: "cursor:pointer", tabindex: 0, role: "button", "aria-label": `${["Input layer", "Hidden layer 1", "Hidden layer 2", "Output layer"][l]}, neuron ${i + 1}${labels[l] ? ": " + labels[l][i] : ""}` }, ng);
     const c = svgEl("circle", { cx: p[0], cy: p[1], r: 20, fill: "#fff", stroke: "#111", "stroke-width": 2.5 }, g);
     if (labels[l]) svgEl("text", { x: l ? p[0] + 26 : p[0] - 26, y: p[1] + 5, "text-anchor": l ? "start" : "end", "font-size": 13 }, g).textContent = labels[l][i];
-    nodes.push({ l, i, c }); g.onclick = () => select(l, i); g.onkeydown = e => { if (e.key === "Enter") select(l, i); };
+    nodes.push({ l, i, c }); g.onclick = () => select(l, i); g.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(l, i); } };
   }));
   ["Input layer", "Hidden layer", "Hidden layer", "Output layer"].forEach((t, l) => svgEl("text", { x: X[l], y: 330, "text-anchor": "middle", "font-size": 13, fill: "#5b5f66" }, svg).textContent = t);
   function select(l, i) {
@@ -1227,6 +1238,24 @@ window.addEventListener("hashchange", () => { const n = parseInt(location.hash.s
 const startHash = parseInt((location.hash || "").slice(1), 10);
 slides[0].classList.add("active");
 go(Number.isFinite(startHash) ? startHash - 1 : 0);
+</script>
+<script>
+/* Accessibility: tell screen readers which option button is currently selected */
+(function () {
+  const keyOf = b => Object.keys(b.dataset).filter(k => k !== "step").sort().join(",") + "|" + (b.classList.contains("tog") ? "tog" : "");
+  const mark = b => { const v = b.classList.contains("on") ? "true" : "false"; if (b.getAttribute("aria-pressed") !== v) b.setAttribute("aria-pressed", v); };
+  function refresh() {
+    document.querySelectorAll("button.on").forEach(on => {
+      const k = keyOf(on);
+      on.parentElement.querySelectorAll(":scope > button").forEach(b => { if (keyOf(b) === k) mark(b); });
+    });
+    document.querySelectorAll("button[aria-pressed]").forEach(mark);
+  }
+  let queued = false;
+  new MutationObserver(() => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; refresh(); }); } })
+    .observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+  refresh();
+})();
 </script>
 </body>
 </html>

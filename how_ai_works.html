@@ -147,7 +147,7 @@ svg text { font-family: var(--sans); }
 /* Slide 20 cards */
 .seqcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(14em, 1fr)); gap: 10px; }
 .seqcard { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
-.seqcard h3 { margin: 0 0 6px; font-size: 0.8em; color: var(--muted); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.seqcard h2, .seqcard h3 { margin: 0 0 6px; font-size: 0.8em; color: var(--muted); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
 
 /* Slide 21 code */
 .code { font-family: var(--mono); background: var(--soft); border-radius: 8px; padding: 14px; white-space: pre; overflow-x: auto; font-size: 0.9em; min-height: 4.2em; }
@@ -190,12 +190,20 @@ nav.bar #count { font-family: var(--mono); font-variant-numeric: tabular-nums; c
 nav.bar button { font-size: 14px; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* ---------- Accessibility and mobile fixes ---------- */
+/* Stop double-tap zoom and browser swipe gestures, but keep pinch-zoom available */
+html { touch-action: manipulation; overscroll-behavior: none; }
+body { overscroll-behavior: none; overflow-x: hidden; }
+#deck { overscroll-behavior: contain; overflow-x: hidden; }
+@media (max-width: 500px) { table.t { font-size: 0.72em; } table.t th, table.t td { padding: 5px 4px; } }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 </style>
 </head>
 <body>
 
 
-<main id="deck">
+<main id="deck" tabindex="0" aria-label="Slides">
 
 <!-- 1 -->
 <section class="slide title-slide">
@@ -238,10 +246,10 @@ nav.bar button { font-size: 14px; }
     <div class="panel stack">
       <div class="big">The cat sat on the <span class="blank" style="display:inline-block;min-width:4em;border-bottom:2px solid var(--fg)" id="s3blank">&nbsp;</span></div>
       <div class="row">
-        <input type="text" id="s3guess" placeholder="Type your guess" style="flex:1;min-width:8em">
+        <input type="text" id="s3guess" aria-label="Your guess" placeholder="Type your guess" style="flex:1;min-width:8em">
         <button class="btn primary" id="s3reveal">Show the model's guesses</button>
       </div>
-      <div id="s3note" class="muted" style="font-size:0.85em"></div>
+      <div id="s3note" aria-live="polite" class="muted" style="font-size:0.85em"></div>
       <div class="bars" id="s3bars"></div>
       <p class="cap" id="s3cap" hidden>Example numbers, similar to what a real model produces.</p>
     </div>
@@ -259,9 +267,9 @@ nav.bar button { font-size: 14px; }
       <p class="try">Try it: type any sentence. Long or unusual words get split into more pieces.</p>
     </div>
     <div class="panel stack">
-      <textarea id="s4in" rows="2" style="width:100%">Tokenization is unbelievably important for understanding language models.</textarea>
+      <textarea id="s4in" aria-label="Text to split into tokens" rows="2" style="width:100%">Tokenization is unbelievably important for understanding language models.</textarea>
       <div class="toks" id="s4out"></div>
-      <div class="muted" style="font-size:0.8em" id="s4count"></div>
+      <div class="muted" style="font-size:0.8em" id="s4count" aria-live="polite"></div>
       <p class="cap">The dot (·) shows a space. This is a simplified version of how real tokenizers split text. Real models know about 100,000 different tokens.</p>
     </div>
   </div>
@@ -278,7 +286,7 @@ nav.bar button { font-size: 14px; }
       <p class="try">Try it: press "Pick a word" several times, then change the temperature and try again.</p>
     </div>
     <div class="panel stack">
-      <div class="big">My favorite food is <span id="s5pick" class="mono" style="background:var(--hl);padding:0 4px;border-radius:3px">___</span></div>
+      <div class="big">My favorite food is <span id="s5pick" aria-live="polite" class="mono" style="background:var(--hl);padding:0 4px;border-radius:3px">___</span></div>
       <div class="bars" id="s5bars"></div>
       <label class="sl">Temperature <input type="range" id="s5temp" min="0.1" max="2" step="0.1" value="1"><output id="s5tv">1.0</output></label>
       <div class="row"><button class="btn primary" id="s5go">Pick a word</button><button class="btn" id="s5ten">Pick 20 times</button></div>
@@ -327,10 +335,10 @@ nav.bar button { font-size: 14px; }
         <button class="btn" data-sample="shakes">Shakespeare</button>
         <button class="btn" data-sample="own">My own text</button>
       </div>
-      <textarea id="s7text" rows="5" style="width:100%;font-size:0.75em"></textarea>
-      <div class="row"><button class="btn primary" id="s7gen">Generate text</button><span class="muted" style="font-size:0.8em" id="s7info"></span></div>
+      <textarea id="s7text" aria-label="Training text" rows="5" style="width:100%;font-size:0.75em"></textarea>
+      <div class="row"><button class="btn primary" id="s7gen">Generate text</button><span class="muted" style="font-size:0.8em" id="s7info" aria-live="polite"></span></div>
       <div class="genout" id="s7out">Press "Generate text" to see what the model writes.</div>
-      <div class="row"><span style="font-size:0.85em">Look inside: which words came after</span><input type="text" id="s7look" value="the" style="width:7em"></div>
+      <div class="row"><label for="s7look" style="font-size:0.85em">Look inside: which words came after</label><input type="text" id="s7look" value="the" style="width:7em"></div>
       <div class="bars" id="s7bars"></div>
     </div>
   </div>
@@ -368,10 +376,10 @@ nav.bar button { font-size: 14px; }
     </div>
     <div class="panel stack">
       <svg id="s9svg" viewBox="0 0 440 400" style="width:100%;max-width:520px;display:block;margin:0 auto" role="img" aria-label="Foods plotted by sweetness and saltiness"></svg>
-      <div class="row"><input type="text" id="s9name" value="Popcorn with caramel" style="flex:1;min-width:8em"><button class="btn primary" id="s9add">Add to the graph</button></div>
+      <div class="row"><input type="text" id="s9name" aria-label="Food name" value="Popcorn with caramel" style="flex:1;min-width:8em"><button class="btn primary" id="s9add">Add to the graph</button></div>
       <label class="sl">Sweet <input type="range" id="s9sweet" min="0" max="10" step="1" value="7"><output id="s9sv">7</output></label>
       <label class="sl">Salty <input type="range" id="s9salty" min="0" max="10" step="1" value="5"><output id="s9xv">5</output></label>
-      <div id="s9near" style="font-size:0.85em"></div>
+      <div id="s9near" aria-live="polite" style="font-size:0.85em"></div>
     </div>
   </div>
 </section>
@@ -387,8 +395,8 @@ nav.bar button { font-size: 14px; }
       <p class="try">Try it: click a word to see its closest neighbors and a piece of its embedding.</p>
     </div>
     <div class="panel stack">
-      <svg id="s10svg" viewBox="0 0 600 420" style="width:100%;display:block" role="img" aria-label="Map of words grouped by meaning"></svg>
-      <div style="font-size:0.85em" id="s10info"></div>
+      <svg id="s10svg" viewBox="0 0 600 420" style="width:100%;display:block" role="group" aria-label="Map of words grouped by meaning. Each word is a button that shows its closest words."></svg>
+      <div style="font-size:0.85em" id="s10info" aria-live="polite"></div>
       <div id="s10strips" class="stack" style="gap:6px"></div>
     </div>
   </div>
@@ -408,7 +416,7 @@ nav.bar button { font-size: 14px; }
       <svg id="s11svg" viewBox="0 0 600 400" style="width:100%;display:block" role="img" aria-label="Word directions"></svg>
       <div class="row"><button class="btn" data-an="0" data-step="0">man → woman</button><button class="btn primary" data-an="0" data-step="1">Apply to king</button></div>
       <div class="row"><button class="btn" data-an="1" data-step="0">France → Paris</button><button class="btn primary" data-an="1" data-step="1">Apply to Japan</button></div>
-      <div id="s11info" style="font-size:0.85em;min-height:1.5em"></div>
+      <div id="s11info" aria-live="polite" style="font-size:0.85em;min-height:1.5em"></div>
     </div>
   </div>
 </section>
@@ -425,8 +433,8 @@ nav.bar button { font-size: 14px; }
     </div>
     <div class="panel stack">
       <div class="row" id="s12tabs"></div>
-      <div style="overflow-x:auto"><svg id="s12svg" style="display:block"></svg></div>
-      <div id="s12info" style="font-size:0.85em"></div>
+      <div style="overflow-x:auto" tabindex="0" role="region" aria-label="Attention diagram"><svg id="s12svg" style="display:block"></svg></div>
+      <div id="s12info" aria-live="polite" style="font-size:0.85em"></div>
       <p class="cap">Example attention values chosen to show the idea. A real model has many attention patterns working at the same time.</p>
     </div>
   </div>
@@ -443,7 +451,7 @@ nav.bar button { font-size: 14px; }
     </div>
     <div class="panel">
       <div class="stages" id="s13stages"></div>
-      <div class="stagebody" id="s13body"></div>
+      <div class="stagebody" id="s13body" aria-live="polite"></div>
       <div class="row"><button class="btn primary" id="s13next">Next stage</button><button class="btn" id="s13reset">Start over</button></div>
     </div>
   </div>
@@ -464,7 +472,7 @@ nav.bar button { font-size: 14px; }
       <label class="sl">Weight A <input type="range" id="s14a" min="-2" max="2" step="0.1" value="0"><output id="s14av">0.0</output></label>
       <label class="sl">Weight B <input type="range" id="s14b" min="-3" max="3" step="0.1" value="0"><output id="s14bv">0.0</output></label>
       <label class="sl">Weight C <input type="range" id="s14c" min="-3" max="4" step="0.1" value="0"><output id="s14cv">0.0</output></label>
-      <div id="s14err" class="big"></div>
+      <div id="s14err" aria-live="polite" class="big"></div>
     </div>
   </div>
 </section>
@@ -504,8 +512,8 @@ nav.bar button { font-size: 14px; }
       <div class="stats" id="s16stats"></div>
       <div class="row"><button class="btn primary" id="s16gen">Generate text</button></div>
       <div class="genout" id="s16out"></div>
-      <div class="row"><span style="font-size:0.85em">Test a word:</span><input type="text" id="s16look" value="love" style="width:8em"></div>
-      <div id="s16lookout" style="font-size:0.85em"></div>
+      <div class="row"><label for="s16look" style="font-size:0.85em">Test a word:</label><input type="text" id="s16look" value="love" style="width:8em"></div>
+      <div id="s16lookout" aria-live="polite" style="font-size:0.85em"></div>
       <div class="bars" id="s16bars"></div>
     </div>
   </div>
@@ -522,7 +530,7 @@ nav.bar button { font-size: 14px; }
       <p class="try">Each dot on the right is one person's lifetime of reading.</p>
     </div>
     <div class="panel stack">
-      <canvas id="s17c" style="width:100%;display:block"></canvas>
+      <canvas id="s17c" role="img" aria-label="Dots, each one a person's lifetime of reading, filling up to show the amount of training text" style="width:100%;display:block"></canvas>
       <div class="row"><button class="btn primary" id="s17go">Show the training data</button><span class="mono" id="s17n" style="font-size:0.85em"></span></div>
     </div>
   </div>
@@ -585,7 +593,7 @@ nav.bar button { font-size: 14px; }
     <div class="stack">
       <div class="seqcards" id="s20cards"></div>
       <div class="panel stack">
-        <div class="row" style="align-items:flex-start"><canvas id="s20img" width="240" height="240" style="width:160px;height:160px;border-radius:6px"></canvas><canvas id="s20tiles" style="max-width:100%"></canvas></div>
+        <div class="row" style="align-items:flex-start"><canvas id="s20img" role="img" aria-label="A picture" width="240" height="240" style="width:160px;height:160px;border-radius:6px"></canvas><canvas id="s20tiles" role="img" aria-label="The same picture cut into small square tiles, laid out in a row like tokens" style="max-width:100%"></canvas></div>
         <div class="row"><button class="btn primary" id="s20cut">Cut into tiles</button></div>
       </div>
     </div>
@@ -605,7 +613,7 @@ nav.bar button { font-size: 14px; }
       <div class="code" id="s21code"></div>
       <div class="opts" id="s21opts"></div>
       <div class="bars" id="s21bars"></div>
-      <div class="row"><span class="muted" style="font-size:0.8em" id="s21score"></span><button class="btn" id="s21reset">Start over</button></div>
+      <div class="row"><span class="muted" style="font-size:0.8em" id="s21score" aria-live="polite"></span><button class="btn" id="s21reset">Start over</button></div>
     </div>
   </div>
 </section>
@@ -694,6 +702,8 @@ nav.bar button { font-size: 14px; }
   <button class="btn primary" id="next">Next →</button>
 </nav>
 
+<div id="a11y-status" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
 <script>
@@ -755,6 +765,7 @@ function go(i) {
   i = Math.max(0, Math.min(slides.length - 1, i));
   slides[cur].classList.remove("active"); cur = i; slides[cur].classList.add("active");
   $("#count").textContent = `${cur + 1} / ${slides.length}`;
+  { const h = slides[cur].querySelector("h1"), st = document.getElementById("a11y-status"); if (st) st.textContent = `Slide ${cur + 1} of ${slides.length}: ${h ? h.textContent.trim() : ""}`; }
   $("#prog").style.width = `${(cur + 1) / slides.length * 100}%`;
   $("#prev").disabled = cur === 0; $("#next").disabled = cur === slides.length - 1;
   $("#deck").scrollTop = 0;
@@ -983,7 +994,7 @@ INIT.s10 = () => {
       svgEl("circle", { cx: w[1], cy: w[2], r: on ? 7 : 5, fill: on ? "#1d4ed8" : nb ? "#1d4ed8" : "#111" }, g);
       svgEl("text", { x: w[1] + 8, y: w[2] + 4, "font-size": 14, "font-weight": on || nb ? 700 : 400, fill: on || nb ? "#1d4ed8" : "#111" }, g).textContent = w[0];
       const act = () => { sel = w; draw(); };
-      g.onclick = act; g.onkeydown = e => { if (e.key === "Enter") act(); };
+      g.onclick = act; g.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); act(); } };
     });
     if (sel) {
       $("#s10info").innerHTML = `Closest to <b>${esc(sel[0])}</b>: ${near.map(n => `<b>${esc(n[0])}</b>`).join(", ")}`;
@@ -1199,7 +1210,7 @@ INIT.s19 = () => {
 /* ---------- 20: sequences and image tiles ---------- */
 INIT.s20 = () => {
   const cards = [["Text", ["The", " cat", " sat", " on", " the", " mat"]], ["Code", ["print", "(", "\"", "Hello", "\"", ")"]], ["Music", ["C", "E", "G", "C", "E", "G", "A"]], ["DNA", ["A", "T", "G", "C", "C", "A", "T", "G"]], ["Chess", ["e4", "e5", "Nf3", "Nc6", "Bb5"]]];
-  $("#s20cards").innerHTML = cards.map(([h, t]) => `<div class="seqcard"><h3>${h}</h3><div class="toks">${tokHTML(t, false)}</div></div>`).join("");
+  $("#s20cards").innerHTML = cards.map(([h, t]) => `<div class="seqcard"><h2>${h}</h2><div class="toks">${tokHTML(t, false)}</div></div>`).join("");
   const img = $("#s20img"), g = img.getContext("2d");
   const sky = g.createLinearGradient(0, 0, 0, 170); sky.addColorStop(0, "#7fb3e8"); sky.addColorStop(1, "#d6eaf8"); g.fillStyle = sky; g.fillRect(0, 0, 240, 170);
   g.fillStyle = "#f5c542"; g.beginPath(); g.arc(190, 50, 26, 0, 7); g.fill();
@@ -1331,5 +1342,23 @@ slides[0].classList.add("active");
 go(Number.isFinite(startHash) ? startHash - 1 : 0);
 </script>
 
+<script>
+/* Accessibility: tell screen readers which option button is currently selected */
+(function () {
+  const keyOf = b => Object.keys(b.dataset).filter(k => k !== "step").sort().join(",") + "|" + (b.classList.contains("tog") ? "tog" : "");
+  const mark = b => { const v = b.classList.contains("on") ? "true" : "false"; if (b.getAttribute("aria-pressed") !== v) b.setAttribute("aria-pressed", v); };
+  function refresh() {
+    document.querySelectorAll("button.on").forEach(on => {
+      const k = keyOf(on);
+      on.parentElement.querySelectorAll(":scope > button").forEach(b => { if (keyOf(b) === k) mark(b); });
+    });
+    document.querySelectorAll("button[aria-pressed]").forEach(mark);
+  }
+  let queued = false;
+  new MutationObserver(() => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; refresh(); }); } })
+    .observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+  refresh();
+})();
+</script>
 </body>
 </html>
