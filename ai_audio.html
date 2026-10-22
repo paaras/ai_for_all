@@ -819,7 +819,7 @@ function onSize(el, fn) { SIZED.set(el, fn); if (RO) RO.observe(el); }
 
 /* live wave drawing from an analyser */
 function liveWave(cv) {
-  const g = cv.getContext("2d"); let an = null, raf = 0, data;
+  const g = cv.getContext("2d"); let an = null, raf = 0, data, users = 0;
   function size() { const r = cv.getBoundingClientRect(); cv.width = Math.max(300, r.width * 2); cv.height = Math.max(100, r.height * 2); }
   function flat() { size(); g.fillStyle = "#f3f4f6"; g.fillRect(0, 0, cv.width, cv.height); g.strokeStyle = "#9aa3b2"; g.lineWidth = 2; g.beginPath(); g.moveTo(0, cv.height / 2); g.lineTo(cv.width, cv.height / 2); g.stroke(); }
   function draw() {
@@ -832,8 +832,11 @@ function liveWave(cv) {
   flat();
   onSize(cv, () => { if (!raf) flat(); else size(); });
   return {
-    tap() { if (!an) { an = ac().createAnalyser(); an.fftSize = 2048; data = new Float32Array(an.fftSize); } if (!raf) { size(); draw(); } return an; },
-    stop() { cancelAnimationFrame(raf); raf = 0; flat(); },
+    /* each sound that starts calls tap() and each sound that ends calls stop(), so when one clip
+       cuts off another, the old clip ending doesn't blank the wave of the new one */
+    tap() { users++; if (!an) { an = ac().createAnalyser(); an.fftSize = 2048; data = new Float32Array(an.fftSize); } if (!raf) { size(); draw(); } return an; },
+    stop() { users = Math.max(0, users - 1); if (users > 0) return; cancelAnimationFrame(raf); raf = 0; flat(); },
+    reset() { users = 0; cancelAnimationFrame(raf); raf = 0; flat(); },
   };
 }
 
@@ -971,7 +974,7 @@ INIT.s1 = () => {
     rv.textContent = "";
     return playKey("vm", { tap: w.tap(), onEnd: () => { w.stop(); done(); rv.textContent = "Can you tell it's AI?"; } });
   });
-  HIDE.s1 = () => w.stop();
+  HIDE.s1 = () => w.reset();
 };
 
 /* ---------- 2: a pure tone ---------- */
@@ -1182,7 +1185,7 @@ INIT.s9 = () => {
   };
   const w = liveWave($("#s9wave"));
   playButton($("#s9new"), "AI voice", done => playKey("vm", { tap: w.tap(), onEnd: () => { w.stop(); done(); } }));
-  HIDE.s9 = () => w.stop();
+  HIDE.s9 = () => w.reset();
 };
 
 /* ---------- 10: sound tokens ---------- */
@@ -1222,7 +1225,7 @@ INIT.s11 = () => {
   const w = liveWave($("#s11wave"));
   $("#s11cards").innerHTML = SETS.map((s, i) => `<div class="card"><div class="row" style="justify-content:space-between"><b>${s[0]}</b><button class="btn primary" data-i="${i}">Play</button></div></div>`).join("");
   $$("#s11cards button").forEach(b => playButton(b, "Play", done => playKey(SETS[+b.dataset.i][1], { tap: w.tap(), onEnd: () => { w.stop(); done(); } })));
-  HIDE.s11 = () => w.stop();
+  HIDE.s11 = () => w.reset();
 };
 
 /* ---------- 12: scam call ---------- */
@@ -1230,7 +1233,7 @@ INIT.s12 = () => {
   const w = liveWave($("#s12wave"));
   playButton($("#s12play"), "Play the call", done => playKey("scam", { tap: w.tap(), onEnd: () => { w.stop(); done(); } }));
   $("#s12show").onclick = () => { const on = $("#s12tr").classList.toggle("shown"); $("#s12flags").hidden = !on; $("#s12show").textContent = on ? "Hide the warning signs" : "Show the warning signs"; };
-  HIDE.s12 = () => w.stop();
+  HIDE.s12 = () => w.reset();
 };
 
 /* ---------- animated demos: a run can always be stopped ---------- */
