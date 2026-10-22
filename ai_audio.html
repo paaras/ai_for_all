@@ -313,16 +313,15 @@ html, body { overscroll-behavior: none; }
       <p>Time goes left to right. Pitch goes bottom to top: low sounds at the bottom, high sounds at the top. The darker a spot, the louder that pitch is at that moment.</p>
       <p>Each sound leaves its own pattern. A whistle is a thin line. A "sss" sound is a haze up high. Vowels are stacks of stripes, which are the overtones.</p>
       <p>Once sound is a picture, AI can learn from it the same way it learns from photos.</p>
-      <p class="try">Try it: press "Use my mic", then whistle, hum, say "sssss", then "eeee" and "oooo". Or play the voicemail or the song.</p>
+      <p class="try">Try it: play each sound and compare the patterns it leaves.</p>
     </div>
     <div class="panel stack">
       <div class="specwrap"><div class="ticks" aria-hidden="true" id="s5ticks"></div><canvas id="s5spec" role="img" aria-label="Spectrogram: time left to right, pitch bottom to top"></canvas></div>
       <div class="row">
-        <button class="btn primary" id="s5mic">Use my mic</button>
-        <button class="btn" id="s5vm">Voicemail</button>
-        <button class="btn" id="s5song">Song</button>
+        <button class="btn primary" id="s5wh">Whistle</button>
+        <button class="btn primary" id="s5vm">Voicemail</button>
+        <button class="btn primary" id="s5song">Song</button>
       </div>
-      <p class="cap" id="s5msg" aria-live="polite"></p>
     </div>
   </div>
 </section>
@@ -335,17 +334,13 @@ html, body { overscroll-behavior: none; }
       <p>To turn speech into text, the AI cuts the spectrogram into thin slices, each a few hundredths of a second long. Each slice becomes a list of numbers.</p>
       <p>Then a transformer, the same kind of model behind ChatGPT, reads the slices and writes out the words, token by token. It works a lot like translating, only from sound into text.</p>
       <p>Whisper, a well-known speech model from OpenAI, learned from 680,000 hours of recordings that came with transcripts. Listening to all of it, day and night, would take you 77 years.</p>
-      <p class="try">Try it: press Play to see the idea. Then press "Start listening" and talk. Watch how a word can change once the model hears what comes after it.</p>
+      <p class="try">Try it: press Play to see the idea.</p>
     </div>
     <div class="stack">
       <div class="panel stack">
         <div class="specwrap short"><div class="ticks" aria-hidden="true" id="s6ticks"></div><canvas id="s6spec" role="img" aria-label="Spectrogram of the voicemail"></canvas></div>
         <div class="tokrow words" id="s6words"></div>
         <div class="row"><button class="btn primary" id="s6run">Play</button></div>
-      </div>
-      <div class="panel stack">
-        <div class="row"><button class="btn primary" id="s6listen">Start listening</button></div>
-        <div class="live" id="s6live" aria-live="polite"><span class="muted">Your words will appear here.</span></div>
       </div>
     </div>
   </div>
@@ -442,11 +437,11 @@ html, body { overscroll-behavior: none; }
     <div class="text">
       <p>New AI voices take directions, like an actor. In many voice tools you write a note in square brackets right in the text: [whispers], [laughs], [sighs]. In ChatGPT or Gemini you can just ask: "Say that again, slower and more excited."</p>
       <p>This helps with reading a story to a child, practicing a hard conversation, or making a short video sound professional.</p>
-      <p class="try">Try it: tap through the four readings. Notice that it is the same voice every time.</p>
+      <p class="try">Try it: play all four. Notice that it is the same voice every time.</p>
     </div>
     <div class="panel stack">
       <div class="vmtext">"I'm not mad. I just think you could've told me."</div>
-      <div class="row" id="s11tabs"></div>
+      <div class="duo" id="s11cards"></div>
       <canvas id="s11wave" class="wave short" role="img" aria-label="Sound wave of the voice"></canvas>
     </div>
   </div>
@@ -1092,19 +1087,19 @@ INIT.s4 = async () => {
 INIT.s5 = () => {
   ticks($("#s5ticks"));
   const sp = liveSpec($("#s5spec"));
-  const micBtn = $("#s5mic");
-  micBtn.onclick = async () => {
-    if (micBtn.dataset.on === "1") { stopAll(); return; }
-    stopAll();
-    let stream;
-    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
-    catch (e) { $("#s5msg").textContent = "Your browser didn't let the mic turn on. Check its settings, or play the voicemail instead."; return; }
-    const node = ac().createMediaStreamSource(stream); node.connect(sp.tap());
-    const h = { stop() { node.disconnect(); stream.getTracks().forEach(t => t.stop()); release(h); micBtn.dataset.on = "0"; micBtn.textContent = "Use my mic"; $("#s5msg").textContent = ""; } };
+  playButton($("#s5wh"), "Whistle", done => {
+    /* a whistle that slides up and back down */
+    const c = ac(), o = c.createOscillator(), g = c.createGain(), t = c.currentTime;
+    o.frequency.setValueAtTime(900, t); o.frequency.exponentialRampToValueAtTime(2600, t + 1.2); o.frequency.exponentialRampToValueAtTime(1200, t + 2.4);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.12, t + 0.05); g.gain.setValueAtTime(0.12, t + 2.35); g.gain.linearRampToValueAtTime(0, t + 2.45);
+    o.connect(g); g.connect(c.destination); g.connect(sp.tap());
+    let fin = false;
+    const h = { ended: false, stop() { if (fin) return; fin = true; o.onended = null; try { o.stop(); } catch (e) {} h.ended = true; release(h); done(); } };
     claim(h);
-    micBtn.dataset.on = "1"; micBtn.textContent = "Turn off mic";
-    $("#s5msg").textContent = "Listening. Nothing gets recorded.";
-  };
+    o.onended = () => { if (fin) return; fin = true; h.ended = true; release(h); done(); };
+    o.start(); o.stop(t + 2.5);
+    return h;
+  });
   playButton($("#s5vm"), "Voicemail", done => playKey("vm", { tap: sp.tap(), onEnd: done }));
   playButton($("#s5song"), "Song", done => playKey("r4", { tap: sp.tap(), onEnd: done }));
   SHOW.s5 = () => sp.tap();
@@ -1134,31 +1129,7 @@ INIT.s6 = async () => {
   }
   playButton($("#s6run"), "Play", async done => { const h = playBuffer(buf, { onEnd: done }); spans.forEach(s => s.style.visibility = "hidden"); frame(h); return h; });
 
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const live = $("#s6live"), btn = $("#s6listen");
-  let rec = null, on = false;
-  if (!SR) { btn.disabled = true; live.innerHTML = '<span class="muted">This browser can\'t do this. Try Chrome or Safari, or use the microphone button on your phone\'s keyboard. It works the same way.</span>'; }
-  const stopRec = () => { on = false; if (rec) { rec.onend = null; try { rec.stop(); } catch (e) {} } btn.textContent = "Start listening"; };
-  btn.onclick = () => {
-    if (!SR) return;
-    if (on) { stopRec(); return; }
-    stopAll();
-    rec = new SR(); rec.lang = navigator.language || "en-US"; rec.continuous = true; rec.interimResults = true;
-    live.innerHTML = '<span class="muted">Listening… go ahead and talk.</span>';
-    rec.onresult = e => {
-      let fin = "", interim = "";
-      for (let i = 0; i < e.results.length; i++) { const r = e.results[i]; if (r.isFinal) fin += r[0].transcript + " "; else interim += r[0].transcript; }
-      live.innerHTML = esc(fin) + `<span class="interim">${esc(interim)}</span>`;
-    };
-    rec.onerror = e => {
-      if (e.error === "no-speech" || e.error === "aborted") return;
-      stopRec();
-      live.innerHTML = '<span class="muted">' + (e.error === "not-allowed" || e.error === "service-not-allowed" ? "The browser isn't allowed to use the mic. Check its settings and try again." : "That didn't work in this browser. Try Chrome, or the mic button on your phone's keyboard.") + "</span>";
-    };
-    rec.onend = () => { if (on) { try { rec.start(); } catch (e) { stopRec(); } } };
-    try { rec.start(); on = true; btn.textContent = "Stop listening"; } catch (e) { stopRec(); }
-  };
-  HIDE.s6 = () => { stopRec(); cancelAnimationFrame(raf); };
+  HIDE.s6 = () => cancelAnimationFrame(raf);
 };
 
 /* ---------- 7: context ---------- */
@@ -1248,16 +1219,10 @@ INIT.s10 = async () => {
 /* ---------- 11: directions ---------- */
 INIT.s11 = () => {
   const SETS = [["Calm", "mad_calm"], ["Hurt", "mad_hurt"], ["Angry", "mad_angry"], ["Laughing it off", "mad_laugh"]];
-  const box = $("#s11tabs"), w = liveWave($("#s11wave"));
-  box.innerHTML = SETS.map((s, i) => `<button class="tog" data-i="${i}">${s[0]}</button>`).join("");
-  let playing = -1;
-  $$(".tog", box).forEach(b => b.onclick = async () => {
-    const i = +b.dataset.i;
-    if (playing === i) { stopAll(); return; }
-    setOn($$(".tog", box), b); playing = i;
-    playKey(SETS[i][1], { tap: w.tap(), onEnd: () => { if (playing === i) { playing = -1; setOn($$(".tog", box), null); w.stop(); } } });
-  });
-  HIDE.s11 = () => { w.stop(); };
+  const w = liveWave($("#s11wave"));
+  $("#s11cards").innerHTML = SETS.map((s, i) => `<div class="card"><div class="row" style="justify-content:space-between"><b>${s[0]}</b><button class="btn primary" data-i="${i}">Play</button></div></div>`).join("");
+  $$("#s11cards button").forEach(b => playButton(b, "Play", done => playKey(SETS[+b.dataset.i][1], { tap: w.tap(), onEnd: () => { w.stop(); done(); } })));
+  HIDE.s11 = () => w.stop();
 };
 
 /* ---------- 12: scam call ---------- */
