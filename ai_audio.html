@@ -739,15 +739,36 @@ const VM_WORDS = [["Hey,",0],["it's",0.72],["me.",0.9],["Um,",1.64],["so",1.94],
 /* ---------- audio engine ---------- */
 let AC = null;
 function ac() {
-  if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
-  if (AC.state === "suspended") AC.resume();
+  if (!AC) {
+    /* iPhone: without this, sound is muted whenever the ring/silent switch is on silent */
+    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (AC.state !== "running") { try { const p = AC.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
   return AC;
 }
+/* Safari only lets sound start from a tap or key press. Every tap wakes the audio up
+   (and plays a silent blip) before the button itself runs, so the sound that follows is allowed. */
+(function () {
+  function unlock() {
+    const c = ac();
+    try { const b = c.createBuffer(1, 1, c.sampleRate), src = c.createBufferSource(); src.buffer = b; src.connect(c.destination); src.start(0); } catch (e) {}
+  }
+  ["touchend", "pointerup", "click", "keydown"].forEach(ev => document.addEventListener(ev, () => { if (!AC || AC.state !== "running") unlock(); }, { capture: true, passive: true }));
+  document.addEventListener("visibilitychange", () => { if (document.hidden) stopAll(); });
+})();
 const bufP = {};
 function b64buf(uri) { const s = atob(uri.slice(uri.indexOf(",") + 1)); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u.buffer; }
+const BUF = {};
 function getBuf(k) {
-  if (!bufP[k]) bufP[k] = new Promise((res, rej) => ac().decodeAudioData(b64buf(AUD[k]), res, rej));
+  if (!bufP[k]) bufP[k] = new Promise((res, rej) => ac().decodeAudioData(b64buf(AUD[k]), b => { BUF[k] = b; res(b); }, rej));
   return bufP[k];
+}
+/* Play a recording. If it's already loaded (it normally is, see PRELOAD below), it starts right now,
+   inside the tap, which is what iPhones and iPads need. */
+function playKey(k, opts) {
+  if (BUF[k]) return playBuffer(BUF[k], opts);
+  return getBuf(k).then(b => playBuffer(b, opts));
 }
 function mono(buffer) {
   const n = buffer.length, out = new Float32Array(n);
@@ -914,6 +935,9 @@ function drawWave(cv, x, opts = {}) {
   return { W, H, g };
 }
 
+/* which recordings each slide uses, loaded ahead of time so Play starts instantly */
+const PRELOAD = { s1: ["vm"], s4: ["vm"], s5: ["vm", "r4"], s6: ["vm"], s8: ["job_happy", "job_sad"], s9: ["vm"], s10: ["vm"], s11: ["mad_calm", "mad_hurt", "mad_angry", "mad_laugh"], s12: ["scam"], s16: ["vm"], s17: ["r1", "r2", "r3", "r4"], s18: ["c1", "c2"], s19: ["tr_en", "tr_es", "tr_hi", "doctor", "podcast", "sfx_rain"] };
+
 /* ---------- Deck navigation ---------- */
 const INIT = {}, SHOW = {}, HIDE = {};
 const slides = $$(".slide"); let cur = 0; const inited = new Set();
@@ -930,6 +954,7 @@ function go(i) {
   const id = slides[cur].dataset.init;
   if (id && !inited.has(id) && INIT[id]) { inited.add(id); try { const p = INIT[id](slides[cur]); if (p && p.catch) p.catch(e => console.error(e)); } catch (e) { console.error(e); } }
   if (id && SHOW[id]) SHOW[id]();
+  [cur, cur + 1].forEach(j => { const sid = slides[j] && slides[j].dataset.init; (PRELOAD[sid] || []).forEach(k => getBuf(k).catch(e => console.error(e))); });
   try { history.replaceState(null, "", "#" + (cur + 1)); } catch (e) {}
 }
 $("#prev").onclick = () => go(cur - 1);
@@ -949,7 +974,7 @@ INIT.s1 = () => {
   const w = liveWave($("#s1wave")), rv = $("#s1reveal");
   playButton($("#s1play"), "Play", async done => {
     rv.textContent = "";
-    return playBuffer(await getBuf("vm"), { tap: w.tap(), onEnd: () => { w.stop(); done(); rv.textContent = "Can you tell it's AI?"; } });
+    return playKey("vm", { tap: w.tap(), onEnd: () => { w.stop(); done(); rv.textContent = "Can you tell it's AI?"; } });
   });
   HIDE.s1 = () => w.stop();
 };
@@ -1080,8 +1105,8 @@ INIT.s5 = () => {
     micBtn.dataset.on = "1"; micBtn.textContent = "Turn off mic";
     $("#s5msg").textContent = "Listening. Nothing gets recorded.";
   };
-  playButton($("#s5vm"), "Voicemail", async done => playBuffer(await getBuf("vm"), { tap: sp.tap(), onEnd: done }));
-  playButton($("#s5song"), "Song", async done => playBuffer(await getBuf("r4"), { tap: sp.tap(), onEnd: done }));
+  playButton($("#s5vm"), "Voicemail", done => playKey("vm", { tap: sp.tap(), onEnd: done }));
+  playButton($("#s5song"), "Song", done => playKey("r4", { tap: sp.tap(), onEnd: done }));
   SHOW.s5 = () => sp.tap();
   HIDE.s5 = () => sp.stop();
   sp.tap();
@@ -1158,7 +1183,7 @@ INIT.s8 = () => {
   $("#s8cards").innerHTML = C.map((c, i) => `<div class="card"><div class="row" style="justify-content:space-between"><b>${c.t}</b><button class="btn primary" data-i="${i}">Play</button></div>
     <div class="ans" hidden><b>Model given only the words:</b>${esc(words)}${c.wrong ? ' <span style="color:var(--bad);font-weight:700">Wrong for this recording.</span>' : ""}</div>
     <div class="ans" hidden><b>Model given the recording:</b>${esc(c.heard)}</div></div>`).join("");
-  $$("#s8cards button").forEach(b => playButton(b, "Play", async done => playBuffer(await getBuf(C[+b.dataset.i].k), { onEnd: done })));
+  $$("#s8cards button").forEach(b => playButton(b, "Play", done => playKey(C[+b.dataset.i].k, { onEnd: done })));
   let shown = false;
   $("#s8show").onclick = () => { shown = !shown; $$("#s8cards .ans").forEach(a => a.hidden = !shown); $("#s8show").textContent = shown ? "Hide the answers" : "Show what the model said"; };
 };
@@ -1185,7 +1210,7 @@ INIT.s9 = () => {
     oldB.dataset.on = "1"; oldB.textContent = "Stop";
   };
   const w = liveWave($("#s9wave"));
-  playButton($("#s9new"), "AI voice", async done => playBuffer(await getBuf("vm"), { tap: w.tap(), onEnd: () => { w.stop(); done(); } }));
+  playButton($("#s9new"), "AI voice", done => playKey("vm", { tap: w.tap(), onEnd: () => { w.stop(); done(); } }));
   HIDE.s9 = () => w.stop();
 };
 
@@ -1230,7 +1255,7 @@ INIT.s11 = () => {
     const i = +b.dataset.i;
     if (playing === i) { stopAll(); return; }
     setOn($$(".tog", box), b); playing = i;
-    playBuffer(await getBuf(SETS[i][1]), { tap: w.tap(), onEnd: () => { if (playing === i) { playing = -1; setOn($$(".tog", box), null); w.stop(); } } });
+    playKey(SETS[i][1], { tap: w.tap(), onEnd: () => { if (playing === i) { playing = -1; setOn($$(".tog", box), null); w.stop(); } } });
   });
   HIDE.s11 = () => { w.stop(); };
 };
@@ -1238,7 +1263,7 @@ INIT.s11 = () => {
 /* ---------- 12: scam call ---------- */
 INIT.s12 = () => {
   const w = liveWave($("#s12wave"));
-  playButton($("#s12play"), "Play the call", async done => playBuffer(await getBuf("scam"), { tap: w.tap(), onEnd: () => { w.stop(); done(); } }));
+  playButton($("#s12play"), "Play the call", done => playKey("scam", { tap: w.tap(), onEnd: () => { w.stop(); done(); } }));
   $("#s12show").onclick = () => { const on = $("#s12tr").classList.toggle("shown"); $("#s12flags").hidden = !on; $("#s12show").textContent = on ? "Hide the warning signs" : "Show the warning signs"; };
   HIDE.s12 = () => w.stop();
 };
@@ -1466,8 +1491,9 @@ INIT.s17 = () => {
   }
   function prog() { if (!h) { $("#s17prog").style.width = "0"; return; } $("#s17prog").style.width = Math.min(100, h.pos / h.dur * 100) + "%"; raf = requestAnimationFrame(prog); }
   async function play() {
-    const buf = await getBuf("r" + (k + 1));
-    const me = playBuffer(buf, { tap: sp.tap(), onEnd: () => { if (h === me) { h = null; btn.textContent = "Play"; } } });
+    const key = "r" + (k + 1);
+    if (!BUF[key]) await getBuf(key);
+    const me = playBuffer(BUF[key], { tap: sp.tap(), onEnd: () => { if (h === me) { h = null; btn.textContent = "Play"; } } });
     h = me; btn.textContent = "Stop"; cancelAnimationFrame(raf); prog();
   }
   btn.onclick = () => { if (h) { h.stop(); return; } play(); };
@@ -1485,7 +1511,7 @@ INIT.s18 = () => {
     { k: "c2", t: "70s rock", lyr: "Salt on the window, sun in the hall\nYour record's still turning, but nobody calls\nDown by the harbor the boats never leave\nAnd I'm getting used to the sound of the sea" },
   ];
   $("#s18cards").innerHTML = S.map((s, i) => `<div class="songcard"><div class="row"><b>${s.t}</b><button class="btn primary" data-i="${i}">Play</button></div><div class="lyrics">${esc(s.lyr)}</div></div>`).join("");
-  $$("#s18cards button").forEach(b => playButton(b, "Play", async done => playBuffer(await getBuf(S[+b.dataset.i].k), { onEnd: done })));
+  $$("#s18cards button").forEach(b => playButton(b, "Play", done => playKey(S[+b.dataset.i].k, { onEnd: done })));
 };
 
 /* ---------- 19: uses ---------- */
@@ -1509,7 +1535,7 @@ INIT.s19 = () => {
   $$(".usecard", grid).forEach(b => b.onclick = () => {
     stopAll(); const u = U[+b.dataset.i]; setOn($$(".usecard", grid), b);
     det.innerHTML = `<p><b>${u.t}</b></p>${u.clips.length ? `<div class="row" style="margin-bottom:10px">${u.clips.map((c, j) => `<button class="btn primary" data-j="${j}">${c[0]}</button>`).join("")}</div>` : ""}${u.p.map(x => `<p>${x}</p>`).join("")}`;
-    $$("button[data-j]", det).forEach(bb => { const c = u.clips[+bb.dataset.j]; playButton(bb, c[0], async done => playBuffer(await getBuf(c[1]), { onEnd: done })); });
+    $$("button[data-j]", det).forEach(bb => { const c = u.clips[+bb.dataset.j]; playButton(bb, c[0], done => playKey(c[1], { onEnd: done })); });
     det.hidden = false;
   });
   $(".usecard", grid).click();
