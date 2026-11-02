@@ -236,7 +236,7 @@ body { overscroll-behavior: none; overflow-x: hidden; }
   <div class="pair title-pair">
     <figure><img data-img="sketch_cabin" alt="A rough pencil sketch of a tree, mountains, a house, a pond and the sun"><figcaption>A rough sketch</figcaption></figure>
     <div class="arrow" aria-hidden="true">→</div>
-    <figure><img data-img="cabin_sketch_result" alt="A finished painting of the same scene"><figcaption>What AI made from it</figcaption></figure>
+    <figure><img data-img="cabin_sketch_result" alt="A warm storybook painting of the same scene: the tree, mountains, house with a chimney, path, pond and sun, all where they were drawn"><figcaption>What AI made from it</figcaption></figure>
   </div>
 </section>
 
@@ -264,7 +264,7 @@ body { overscroll-behavior: none; overflow-x: hidden; }
           <label class="sl rgb b">Blue <input type="range" id="s2b" min="0" max="255"><output id="s2bv"></output></label>
         </div>
       </div>
-      <div class="row"><button class="btn" id="s2reset">Put the parrot back</button></div>
+      <div class="row"><button class="btn" id="s2reset">Reset</button></div>
     </div>
   </div>
 </section>
@@ -289,11 +289,11 @@ body { overscroll-behavior: none; overflow-x: hidden; }
         <div class="flow">
           <span class="quote">"a dog on a beach"</span>
           <span class="arr">→</span><span class="boxlbl">Image generator</span><span class="arr">→</span>
-          <figure class="thumbfig"><img data-img="dog1" alt="A dog on a beach"><figcaption class="mono">3,145,728 numbers</figcaption></figure>
+          <figure class="thumbfig"><img data-img="dog1" alt="A golden retriever on a beach at sunset"><figcaption class="mono">3,145,728 numbers</figcaption></figure>
         </div>
       </div>
       <div class="panel row" style="align-items:flex-start;gap:16px">
-        <canvas id="s3cv" role="img" style="width:160px;height:160px;image-rendering:pixelated;border-radius:8px" aria-label="Random pixels"></canvas>
+        <canvas id="s3cv" role="img" style="width:160px;height:160px;image-rendering:pixelated;border-radius:8px" aria-label="An 8 by 8 square of random colored pixels that looks like static"></canvas>
         <div class="stack">
           <button class="btn primary" id="s3go">Pick random numbers</button>
           <div class="small" id="s3count" aria-live="polite">Tries: 0</div>
@@ -406,9 +406,9 @@ body { overscroll-behavior: none; overflow-x: hidden; }
       <div class="panel">
         <div class="small" style="margin-bottom:8px"><b>Same static, three requests</b></div>
         <div class="tri">
-          <figure><canvas id="s7a" class="sq" role="img" aria-label="Picture forming from static for "A dog on a beach""></canvas><figcaption>"A dog on a beach"</figcaption></figure>
-          <figure><canvas id="s7b" class="sq" role="img" aria-label="Picture forming from static for "A lighthouse at night""></canvas><figcaption>"A lighthouse at night"</figcaption></figure>
-          <figure><canvas id="s7c" class="sq" role="img" aria-label="Picture forming from static for "A bowl of fruit""></canvas><figcaption>"A bowl of fruit"</figcaption></figure>
+          <figure><canvas id="s7a" class="sq" role="img" aria-label="Picture forming from static for the request: A dog on a beach"></canvas><figcaption>"A dog on a beach"</figcaption></figure>
+          <figure><canvas id="s7b" class="sq" role="img" aria-label="Picture forming from static for the request: A lighthouse at night"></canvas><figcaption>"A lighthouse at night"</figcaption></figure>
+          <figure><canvas id="s7c" class="sq" role="img" aria-label="Picture forming from static for the request: A bowl of fruit"></canvas><figcaption>"A bowl of fruit"</figcaption></figure>
         </div>
         <div class="row" style="margin-top:10px"><button class="btn primary" id="s7run">Run</button><span class="small mono" id="s7lbl" aria-live="polite"></span></div>
       </div>
@@ -455,7 +455,7 @@ body { overscroll-behavior: none; overflow-x: hidden; }
       </div>
       <div class="example" id="s9prompt"></div>
       <div class="duo" id="s9imgs"></div>
-      <div class="row"><button class="btn" id="s9marks">Show marks</button></div>
+      <div class="row"><button class="btn" id="s9marks">Show marks</button><span class="small" id="s9live" aria-live="polite"></span></div>
     </div>
   </div>
 </section>
@@ -479,7 +479,7 @@ body { overscroll-behavior: none; overflow-x: hidden; }
       <div class="example" id="s10prompt"></div>
       <div class="duo" id="s10imgs"></div>
       <div><button class="btn" id="s10why">What went wrong?</button></div>
-      <div class="whybox" id="s10ans" hidden></div>
+      <div class="whybox" id="s10ans" tabindex="-1" aria-live="polite" hidden></div>
     </div>
   </div>
 </section>
@@ -497,7 +497,7 @@ body { overscroll-behavior: none; overflow-x: hidden; }
     </div>
     <div class="panel stack">
       <div class="dots" id="s11dots"></div>
-      <div class="row"><button class="btn primary" id="s11go">Show the pictures</button><span class="mono small" id="s11n">0 pictures</span></div>
+      <div class="row"><button class="btn primary" id="s11go">Show the pictures</button><span class="mono small" id="s11n">0 pictures</span><span class="sr-only" id="s11live" aria-live="polite"></span></div>
     </div>
   </div>
 </section>
@@ -508,7 +508,7 @@ body { overscroll-behavior: none; overflow-x: hidden; }
   <p class="lead">Here are six everyday uses. Each picture was made with one short request, and some started from an ordinary phone photo.</p>
   <p class="try" style="margin-top:-0.4em">Try it: tap a picture to see the request that made it.</p>
   <div class="usegrid" id="s12grid"></div>
-  <div class="usedetail panel" id="s12detail" hidden></div>
+  <div class="usedetail panel" id="s12detail" aria-live="polite" hidden></div>
 </section>
 
 <!-- 13 -->
@@ -529,12 +529,12 @@ body { overscroll-behavior: none; overflow-x: hidden; }
       </div>
       <div class="example" id="s13prompt"></div>
       <div class="cmpwrap" id="s13cmp">
-        <img id="s13after" alt="After">
         <img id="s13before" class="cmpbefore" alt="Before">
+        <img id="s13after" alt="After">
         <div class="cmpline" id="s13line"></div>
-        <span class="cmptag l">Before</span><span class="cmptag r">After</span>
+        <span class="cmptag l" aria-hidden="true">Before</span><span class="cmptag r" aria-hidden="true">After</span>
       </div>
-      <input type="range" id="s13s" min="0" max="100" value="50" aria-label="Compare before and after">
+      <input type="range" id="s13s" min="0" max="100" value="50" aria-label="Compare before and after" aria-valuetext="50% before">
     </div>
   </div>
 </section>
@@ -601,7 +601,7 @@ body { overscroll-behavior: none; overflow-x: hidden; }
     <div class="panel stack">
       <div class="chipsteps" id="s16steps"></div>
       <img id="s16img" class="sqimg" alt="">
-      <div class="promptline" id="s16prompt"></div>
+      <div class="promptline" id="s16prompt"></div><span class="sr-only" id="s16live" aria-live="polite"></span>
       <div class="row"><button class="btn primary" id="s16go">Add the next detail</button><button class="btn" id="s16reset">Start over</button></div>
     </div>
   </div>
@@ -625,7 +625,7 @@ body { overscroll-behavior: none; overflow-x: hidden; }
       <div class="duo s17duo">
         <div id="s17in"></div>
         <div class="overlaywrap" id="s17out">
-          <img id="s17res" alt="Result">
+          <img id="s17res" alt="">
           <img id="s17ov" data-img="sketch_cabin" alt="" class="ov">
         </div>
       </div>
@@ -651,7 +651,7 @@ body { overscroll-behavior: none; overflow-x: hidden; }
         <button class="tog on" data-t="0">Your own thing</button>
         <button class="tog" data-t="1">A style</button>
       </div>
-      <div class="pair" id="s18pair"></div>
+      <div class="pair" id="s18pair" aria-live="polite"></div>
       <div class="example" id="s18prompt"></div>
     </div>
   </div>
@@ -673,7 +673,7 @@ body { overscroll-behavior: none; overflow-x: hidden; }
     </div>
     <div class="panel stack">
       <div class="chat" id="s19chat"></div>
-      <img id="s19img" class="wideimg" alt="">
+      <img id="s19img" class="wideimg" alt=""><span class="sr-only" id="s19live" aria-live="polite"></span>
       <div class="row"><button class="btn primary" id="s19go">Next message</button><button class="btn" id="s19reset">Start over</button></div>
     </div>
   </div>
@@ -722,7 +722,7 @@ body { overscroll-behavior: none; overflow-x: hidden; }
         </ol>
       </div>
       <div class="panel stack">
-        <canvas id="s21pad" role="img" class="pad43" aria-label="Drawing area"></canvas>
+        <canvas id="s21pad" role="img" class="pad43" aria-label="Drawing area. Draw with a mouse, finger or stylus. If you can't draw here, you can draw on paper and take a photo instead."></canvas>
         <div class="row">
           <span class="small">Pen:</span>
           <span class="colors" id="s21colors"></span>
@@ -776,6 +776,54 @@ function renderBars(el, items, max) {
 function setOn(buttons, active) { buttons.forEach(b => b.classList.toggle("on", b === active)); }
 
 /* ---------- pictures ---------- */
+
+/* Descriptions of every AI picture, read aloud by screen readers. */
+const ALT = {
+  parrot: "Close-up photo of a scarlet macaw: bright red head and body, white face patch, curved pale beak, and yellow and blue wing feathers against a blurred green background.",
+  dog1: "A golden retriever standing on wet sand at sunset, facing the camera with its tongue out, with waves and a rocky headland behind it.",
+  dog2: "A golden retriever on a beach at sunset, facing the camera with its tongue out, the sun low over the sea on the right.",
+  dog3: "A golden retriever on a beach in soft evening light, facing the camera with its tongue out and its tail up, with waves behind it.",
+  dog4: "A golden retriever on a beach at sunset, facing the camera with its tongue out, the sun setting over the sea on the right.",
+  lighthouse: "A white lighthouse on dark rocks at night, its beam shining across the sky, with a full moon over the sea and a small lit cottage beside it.",
+  lighthouse_wide: "The same lighthouse scene made wider: more rocky coast and moonlit sea on both sides, with the lighthouse and moon unchanged in the middle.",
+  fruit: "A white bowl of fruit on a marble counter: bananas, red grapes, oranges, a red apple and a green pear.",
+  cat1: "A photo of a gray tabby cat with a white chest sitting on a rug in a bright living room, looking at the camera.",
+  cat2: "A tabby cat sitting on a stack of four old books on a desk, with bookshelves, a globe and a plant around it.",
+  cat3: "A tabby cat on a stack of old books in a cozy library with a leather armchair, tall bookshelves and a fireplace.",
+  cat4: "A watercolor illustration of a tabby cat on a stack of books in a cozy library, with bookshelves, a globe and a teacup.",
+  cat5: "A watercolor of a tabby cat on a stack of books in a library at night, lit by a warm brass desk lamp, with a full moon in the window.",
+  cat6: "A watercolor of a tabby cat seen from down low and close up, looking down curiously with big eyes, sitting on books under a warm desk lamp at night.",
+  chat1: "A small blue house with white trim and a white front porch with railings on a sunny afternoon, with a green lawn and flowering bushes.",
+  chat2: "The same blue house at dusk under a pink and purple sky, with warm lights glowing in the windows and by the door.",
+  chat3: "The same blue house at dusk with its lights on, now with a golden dog sitting on the porch steps.",
+  chat4: "The same blue house at dusk with its lights on and the dog on the porch steps, now with a red front door.",
+  clock_gpt: "A round wall clock with a dark wooden rim. The hour hand is just past the 4 and the minute hand points at the 7.",
+  clock_klein: "A round wall clock with a black rim. The hour hand points at the 10 and the minute hand points at the 2.",
+  wine_gpt: "A glass of red wine filled right to the very top of the rim, on a marble counter next to a wine bottle and a cork.",
+  wine_klein: "A glass of red wine on a white background, filled only about halfway.",
+  hard_ruler: "A yellow pencil lying just above a metal ruler marked from 0 to 10 centimeters. The pencil tip starts a little to the left of 0 and the eraser ends a bit past 7.",
+  bake_gpt: "An illustrated poster. A banner at the top reads 'Maple Street Bake Sale' and 'Saturday, May 9, 10am to 2pm'. Below, a table with a checked cloth holds three cakes labeled Chocolate, Strawberry and Lemon, from left to right. A girl in a yellow raincoat stands beside the table holding a sign that says 'Pies $5'.",
+  bake_klein: "A photo-style poster. The title reads 'Maple Stcet Bake Salle' and the line under it reads 'Saturrday, May, 9, 10m to 2pm'. A table holds only two cakes, a chocolate cake on the left and a strawberry cake on the right. A girl in a yellow raincoat beside it holds a sign that says 'Pies $5'.",
+  planets_gpt: "A poster titled 'The Solar System', showing the Sun on the left and eight labeled planets in order: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus and Neptune.",
+  planets_klein: "A poster with an unreadable title, 'PGLHURE SALDD OLUBEITS', showing only five planets in a row with made-up names such as 'Raveul', 'Bivaulmt' and 'Pcaonhg'.",
+  cabin_words: "A storybook painting: a huge tree fills the left side, mountains are behind, a small cottage sits far back on the right, a pond is in the bottom left and a path curves off to the right.",
+  cabin_sketch_result: "A warm storybook painting: a round tree on the left, two pointed mountains behind, a small house with a chimney on the right, a path leading from its door toward the viewer, a pond in the bottom left and the sun in the top right.",
+  sketch_cabin: "A rough black pencil sketch: a circle on a stick for a tree on the left, two triangle mountains, a box house with a chimney and door on the right, a path from the door to the bottom edge, a flat oval pond in the bottom left and a sun with rays in the top right.",
+  use_invite: "A colorful outer-space birthday invitation that reads: You're invited to Maya's 7th Birthday. Blast off for a fun time! Saturday, June 14, 2:00 PM, Riverside Park. It shows a cartoon astronaut, a rocket, an alien and planets.",
+  candle_before: "A phone photo of a lit candle in an amber jar labeled 'Maple & Oak' on a cluttered kitchen counter, next to a coffee mug, a French press and a bottle of oil.",
+  candle_after: "The same 'Maple & Oak' candle in an amber jar on a light wooden surface in soft daylight, with a sprig of dried lavender beside it.",
+  room_before: "A plain, dim living room with beige walls, one window, gray carpet and a worn gray couch.",
+  room_after: "The same room redecorated in a warm mid-century style: an olive-green couch with orange pillows, a wooden coffee table, a patterned rug, plants, a floor lamp and abstract art on the walls, with the same window.",
+  use_story: "A colored pencil illustration of a small hedgehog in a red scarf carrying a glowing lantern through a snowy forest at night, with an owl watching from a tree.",
+  use_diagram: "A diagram titled 'The Water Cycle' with the sun, the sea, clouds, rain and mountains, and four labeled boxes joined by arrows: Evaporation, Condensation, Precipitation and Collection.",
+  use_logos: "Four logo ideas for 'Second Cup' in a 2 by 2 grid: a green coffee cart with a striped awning; a round badge with a steaming cup; bold lettering with a coffee bean as the letter O; and a cup in front of a rising sun.",
+  bench_before: "A wooden park bench in autumn with fallen leaves around it and an overflowing trash can on its right.",
+  bench_after: "The same park bench in autumn with fallen leaves, now with no trash can, just more leaves where it stood.",
+  mug_before: "A handmade mug with a speckled cream base and blue drip glaze on a messy desk next to a laptop and a cup of pens.",
+  mug_after: "The same blue-glazed mug on a marble cafe table in Paris, with a croissant beside it and the Eiffel Tower visible down the street behind.",
+  ref_dog: "The same golden retriever wearing a plain white astronaut suit, standing on the gray surface of the moon with the Earth in the black sky behind.",
+  ref_style: "A busy city street painted in the same warm storybook style: brick buildings, trees, a cafe sign, people walking and cars on the road.",
+};
 $$("img[data-img]").forEach(im => { im.src = IMG[im.dataset.img]; });
 const imgCache = {};
 function loadImg(key) {
@@ -926,6 +974,7 @@ INIT.s4 = async () => {
     const t = +$("#s4n").value / 100;
     mix(im.data, src, noise, t); g.putImageData(im, 0, 0);
     $("#s4nv").textContent = Math.round(t * 100) + "%";
+    cv.setAttribute("aria-label", t === 0 ? "Photo of a scarlet macaw parrot with no noise" : t >= 1 ? "Pure static: the parrot can no longer be seen" : `Photo of the parrot with ${Math.round(t * 100)}% noise added${t > 0.6 ? ". It is hard to make out." : ""}`);
     const o = [src[pi], src[pi + 1], src[pi + 2]], c = [im.data[pi], im.data[pi + 1], im.data[pi + 2]];
     $("#s4px").textContent = `The pixel in the middle: red ${o[0]}→${Math.round(c[0])}, green ${o[1]}→${Math.round(c[1])}, blue ${o[2]}→${Math.round(c[2])}`;
   }
@@ -934,7 +983,8 @@ INIT.s4 = async () => {
   for (const t of [0, 0.25, 0.5, 0.75, 1]) {
     const f = document.createElement("figure"), c = document.createElement("canvas"), gg = setupCanvas(c, n), ii = gg.createImageData(n, n);
     mix(ii.data, src, noise, t); gg.putImageData(ii, 0, 0);
-    f.appendChild(c); f.insertAdjacentHTML("beforeend", `<figcaption>${t * 100}%</figcaption>`); strip.appendChild(f);
+    c.setAttribute("role", "img"); c.setAttribute("aria-label", t === 0 ? "The parrot photo with no noise" : t === 1 ? "Pure static: the parrot is completely gone" : `The parrot photo with ${t * 100}% noise`);
+    f.appendChild(c); f.insertAdjacentHTML("beforeend", `<figcaption aria-hidden="true">${t * 100}%</figcaption>`); strip.appendChild(f);
   }
 };
 
@@ -971,12 +1021,14 @@ INIT.s6 = async () => {
   strip.innerHTML = "";
   for (const m of marks) {
     const f = document.createElement("figure"), c = document.createElement("canvas"); c.width = c.height = N;
-    f.appendChild(c); f.insertAdjacentHTML("beforeend", `<figcaption>Step ${m}</figcaption>`); strip.appendChild(f); thumbs[m] = c;
+    c.setAttribute("role", "img"); c.setAttribute("aria-label", m === 0 ? "Step 0: pure static" : m === 20 ? "Step 20: the finished picture" : `Step ${m}: partly cleared static`);
+    f.appendChild(c); f.insertAdjacentHTML("beforeend", `<figcaption aria-hidden="true">Step ${m}</figcaption>`); strip.appendChild(f); thumbs[m] = c;
   }
   async function draw() {
     const k = dogs[di]; if (!sims[k]) sims[k] = await makeSim(k);
     simFrame(im.data, sims[k], noise, step); g.putImageData(im, 0, 0);
-    $("#s6lbl").textContent = step === 0 ? "Step 0 of 20: pure static" : step === STEPS ? "Step 20 of 20: finished" : `Step ${step} of 20`;
+    $("#s6lbl").textContent = step === 0 ? "Step 0 of 20: pure static" : step === STEPS ? "Step 20 of 20: finished. " + ALT[k] : `Step ${step} of 20`;
+    cv.setAttribute("aria-label", step === 0 ? "Pure static" : step === STEPS ? ALT[k] : step < 8 ? "Static with a blurry blob starting to show" : step < 15 ? "A blurry dog on a beach, still noisy" : "A dog on a beach, almost clear");
     if (thumbs[step] !== undefined) thumbs[step].getContext("2d").putImageData(im, 0, 0);
     $("#s6next").disabled = step >= STEPS;
   }
@@ -1008,6 +1060,7 @@ INIT.s7 = async () => {
     if (running) return; running = true;
     for (let s = 0; s <= STEPS && running; s++) { draw(s); await sleep(130); }
     running = false; $("#s7run").textContent = "Run again";
+    $("#s7lbl").textContent = "Step 20 of 20. From the same static: a golden retriever on a beach, a lighthouse at night, and a bowl of fruit.";
   };
   HIDE.s7 = () => { running = false; };
 };
@@ -1071,10 +1124,11 @@ INIT.s9 = () => {
   function show(k) {
     const s = SETS[k]; shown = false; $("#s9marks").textContent = "Show marks";
     $("#s9prompt").innerHTML = `<b>Request:</b> ${esc(s.prompt)}`;
-    $("#s9imgs").innerHTML = s.imgs.map((im, i) => `<figure><div class="mlabel">${names[i]}</div><img src="${IMG[im]}" alt="${names[i]} result"><ul class="marks">${s.list.map(r => `<li><span class="m ${r[i + 1] ? "ok" : "no"}">${r[i + 1] ? "✓" : "✗"}</span><span>${esc(r[0])}</span></li>`).join("")}</ul></figure>`).join("");
+    $("#s9imgs").innerHTML = s.imgs.map((im, i) => `<figure><div class="mlabel">${names[i]}</div><img src="${IMG[im]}" alt="${esc(ALT[im])}"><ul class="marks" aria-label="Checklist for ${names[i]}">${s.list.map(r => `<li><span class="m ${r[i + 1] ? "ok" : "no"}"><span aria-hidden="true">${r[i + 1] ? "✓" : "✗"}</span><span class="sr-only">${r[i + 1] ? "Yes: " : "No: "}</span></span><span>${esc(r[0])}</span></li>`).join("")}</ul></figure>`).join("");
   }
   $$("#s9tabs .tog").forEach(b => b.onclick = () => { setOn($$("#s9tabs .tog"), b); show(b.dataset.t); });
-  $("#s9marks").onclick = () => { shown = !shown; $$("#s9imgs .marks").forEach(m => m.classList.toggle("shown", shown)); $("#s9marks").textContent = shown ? "Hide marks" : "Show marks"; };
+  $("#s9marks").onclick = () => { shown = !shown; $$("#s9imgs .marks").forEach(m => m.classList.toggle("shown", shown)); $("#s9marks").textContent = shown ? "Hide marks" : "Show marks";
+    if (shown) { const k = $$("#s9tabs .tog").find(b => b.classList.contains("on")).dataset.t; $("#s9live").textContent = names.map((n, i) => `${n}: ${SETS[k].list.filter(r => r[i + 1]).length} of ${SETS[k].list.length} right`).join(". ") + "."; } else $("#s9live").textContent = ""; };
   show("bake");
 };
 
@@ -1091,11 +1145,11 @@ INIT.s10 = () => {
   function show(i) {
     const s = SETS[i];
     $("#s10prompt").innerHTML = `<b>Request:</b> ${esc(s.prompt)}`;
-    $("#s10imgs").innerHTML = s.imgs.map(([k, n]) => `<figure><div class="mlabel">${n}</div><img src="${IMG[k]}" alt="${n} result"></figure>`).join("");
+    $("#s10imgs").innerHTML = s.imgs.map(([k, n]) => `<figure><div class="mlabel">${n}</div><img src="${IMG[k]}" alt="${esc(ALT[k])}"></figure>`).join("");
     $("#s10ans").innerHTML = s.why; $("#s10ans").hidden = true; $("#s10why").hidden = false;
   }
   $$("#s10tabs .tog").forEach(b => b.onclick = () => { setOn($$("#s10tabs .tog"), b); show(+b.dataset.t); });
-  $("#s10why").onclick = () => { $("#s10ans").hidden = false; $("#s10why").hidden = true; };
+  $("#s10why").onclick = () => { $("#s10ans").hidden = false; $("#s10why").hidden = true; $("#s10ans").focus(); };
   show(0);
 };
 
@@ -1112,7 +1166,7 @@ INIT.s11 = () => {
       $("#s11n").textContent = (Math.min(D, k + 5) * 10).toLocaleString() + " million pictures";
       await sleep(16);
     }
-    $("#s11n").textContent = "5.85 billion pictures"; running = false;
+    $("#s11n").textContent = "5.85 billion pictures"; $("#s11live").textContent = "585 dots shown: 5.85 billion pictures."; running = false;
   };
 };
 
@@ -1127,10 +1181,10 @@ INIT.s12 = () => {
     { t: "Logo ideas", imgs: ["use_logos"], p: "Four different logo ideas for a coffee cart called 'Second Cup'. Simple and flat, on a white background, arranged in a 2 by 2 grid.", why: "Get several rough directions fast. Then keep refining the one you like, or take it to a designer as a starting point." },
   ];
   const grid = $("#s12grid"), det = $("#s12detail");
-  grid.innerHTML = USES.map((u, i) => `<button class="usecard" data-i="${i}"><img src="${IMG[u.imgs[u.imgs.length - 1]]}" alt=""><span>${u.t}</span></button>`).join("");
+  grid.innerHTML = USES.map((u, i) => `<button class="usecard" aria-controls="s12detail" data-i="${i}"><img src="${IMG[u.imgs[u.imgs.length - 1]]}" alt=""><span>${u.t}</span></button>`).join("");
   $$(".usecard", grid).forEach(b => b.onclick = () => {
     const u = USES[+b.dataset.i]; setOn($$(".usecard", grid), b);
-    const imgs = u.imgs.map((k, j) => `<figure><img src="${IMG[k]}" alt="">${u.before ? `<figcaption>${j ? "After" : "Before: an ordinary phone photo"}</figcaption>` : ""}</figure>`).join("");
+    const imgs = u.imgs.map((k, j) => `<figure><img src="${IMG[k]}" alt="${esc(ALT[k])}">${u.before ? `<figcaption>${j ? "After" : "Before: an ordinary phone photo"}</figcaption>` : ""}</figure>`).join("");
     det.innerHTML = `<div class="imgs ${u.imgs.length > 1 ? "two" : ""}">${imgs}</div><div><p><b>${u.t}</b></p><p class="small"><b>The request:</b> <i>"${esc(u.p)}"</i></p><p class="small">${esc(u.why)}</p>${u.before ? `<p class="cap">The "before" photo was also made by AI, to stand in for a phone photo you might take yourself.</p>` : ""}</div>`;
     det.hidden = false;
   });
@@ -1151,12 +1205,12 @@ INIT.s13 = () => {
     if (wide) {
       before.style.clipPath = `inset(0 ${100 - v}% 0 0)`;
     } else before.style.clipPath = `inset(0 ${100 - v}% 0 0)`;
-    line.style.left = v + "%";
+    line.style.left = v + "%"; sl.setAttribute("aria-valuetext", `Showing ${v}% before, ${100 - v}% after`);
   }
   function show(i) {
     const s = SETS[i]; wide = !!s.wide;
-    $("#s13after").src = IMG[s.a];
-    before.src = IMG[s.b];
+    $("#s13after").src = IMG[s.a]; $("#s13after").alt = "After: " + ALT[s.a];
+    before.src = IMG[s.b]; before.alt = "Before: " + ALT[s.b];
     before.style.objectFit = wide ? "contain" : "cover";
     before.style.background = wide ? "rgba(255,255,255,0.85)" : "";
     $("#s13prompt").innerHTML = `<b>Request:</b> ${esc(s.p)}`;
@@ -1177,8 +1231,8 @@ INIT.s15 = () => {
   const dogs = ["dog1", "dog2", "dog3", "dog4"]; let n = 1;
   const grid = $("#s15grid");
   function draw() {
-    grid.innerHTML = dogs.map((d, i) => `<div class="cell">${i < n ? `<img src="${IMG[d]}" alt="Answer ${i + 1}">` : `Answer ${i + 1}`}</div>`).join("");
-    $("#s15n").textContent = `${n} of 4`;
+    grid.innerHTML = dogs.map((d, i) => `<div class="cell">${i < n ? `<img src="${IMG[d]}" alt="Answer ${i + 1}: ${esc(ALT[d])}">` : `<span aria-hidden="true">Answer ${i + 1}</span>`}</div>`).join("");
+    $("#s15n").textContent = `${n} of 4. ${n > 1 ? "Answer " + n + ": " + ALT[dogs[n - 1]] : ""}`;
     $("#s15go").textContent = n >= 4 ? "Start over" : "Ask again";
   }
   $("#s15go").onclick = () => { n = n >= 4 ? 1 : n + 1; draw(); };
@@ -1201,7 +1255,8 @@ INIT.s16 = () => {
   function draw() {
     $$("button", steps).forEach((b, i) => { b.classList.toggle("done", i < k); b.classList.toggle("cur", i === k); });
     $("#s16img").src = IMG["cat" + (k + 1)];
-    $("#s16img").alt = "Picture made from the request: " + STEPS16.slice(0, k + 1).map(x => x.add).join("").trim();
+    $("#s16img").alt = ALT["cat" + (k + 1)];
+    $("#s16live").textContent = k ? ALT["cat" + (k + 1)] : "";
     const parts = STEPS16.slice(0, k + 1).map((s, i) => i === k && k > 0 ? `<mark>${esc(s.add)}</mark>` : esc(s.add));
     $("#s16prompt").innerHTML = `"${parts.join("")}."`;
     $("#s16go").disabled = k >= STEPS16.length - 1;
@@ -1223,8 +1278,8 @@ INIT.s17 = () => {
   function show(m) {
     $("#s17in").innerHTML = m === "words"
       ? `<div class="mlabel">What was typed</div><div class="wordsbox"><i>"${esc(WORDS)}"</i></div>`
-      : `<div class="mlabel">What was attached and typed</div><img src="${IMG.sketch_cabin}" alt="Rough sketch" style="border-radius:8px;border:1px solid var(--line)"><p class="small" style="margin:6px 0 0"><i>"${esc(SK)}"</i></p>`;
-    $("#s17res").src = IMG[m === "words" ? "cabin_words" : "cabin_sketch_result"];
+      : `<div class="mlabel">What was attached and typed</div><img src="${IMG.sketch_cabin}" alt="${esc(ALT.sketch_cabin)}" style="border-radius:8px;border:1px solid var(--line)"><p class="small" style="margin:6px 0 0"><i>"${esc(SK)}"</i></p>`;
+    $("#s17res").src = IMG[m === "words" ? "cabin_words" : "cabin_sketch_result"]; $("#s17res").alt = ALT[m === "words" ? "cabin_words" : "cabin_sketch_result"];
     $("#s17note").textContent = notes[m];
     $("#s17o").value = 0; ov();
   }
@@ -1243,7 +1298,7 @@ INIT.s18 = () => {
   ];
   function show(i) {
     const s = SETS[i];
-    $("#s18pair").innerHTML = `<figure><img src="${IMG[s.a]}" alt=""><figcaption>${s.la}</figcaption></figure><div class="arrow" aria-hidden="true">→</div><figure><img src="${IMG[s.b]}" alt=""><figcaption>Result</figcaption></figure>`;
+    $("#s18pair").innerHTML = `<figure><img src="${IMG[s.a]}" alt="${esc(ALT[s.a])}"><figcaption>${s.la}</figcaption></figure><div class="arrow" aria-hidden="true">→</div><figure><img src="${IMG[s.b]}" alt="${esc(ALT[s.b])}"><figcaption>Result</figcaption></figure>`;
     $("#s18prompt").innerHTML = `<b>Request:</b> ${esc(s.p)}`;
   }
   $$("#s18tabs .tog").forEach(b => b.onclick = () => { setOn($$("#s18tabs .tog"), b); show(+b.dataset.t); });
@@ -1256,7 +1311,8 @@ INIT.s19 = () => {
   let k = 0;
   function draw() {
     $("#s19chat").innerHTML = MSG.slice(0, k + 1).map((m, i) => `<div class="msg ${i < k ? "old" : ""}">${esc(m)}</div>`).join("");
-    $("#s19img").src = IMG["chat" + (k + 1)]; $("#s19img").alt = "Picture after these requests: " + MSG.slice(0, k + 1).join(" ");
+    $("#s19img").src = IMG["chat" + (k + 1)]; $("#s19img").alt = ALT["chat" + (k + 1)];
+    $("#s19live").textContent = k ? `You asked: ${MSG[k]} ${ALT["chat" + (k + 1)]}` : "";
     $("#s19go").disabled = k >= MSG.length - 1;
   }
   $("#s19go").onclick = () => { if (k < MSG.length - 1) { k++; draw(); } };
@@ -1305,9 +1361,9 @@ INIT.s20 = () => {
 INIT.s21 = () => {
   const cv = $("#s21pad"), W = 1200, H = 900; cv.width = W; cv.height = H;
   const g = cv.getContext("2d"); g.lineCap = "round"; g.lineJoin = "round";
-  const COLORS = ["#111111", "#dc2626", "#2563eb", "#16a34a", "#f59e0b"];
+  const COLORS = ["#111111", "#dc2626", "#2563eb", "#16a34a", "#f59e0b"], CNAMES = ["Black", "Red", "Blue", "Green", "Yellow"];
   let color = COLORS[0], width = 4, strokes = [], curS = null;
-  $("#s21colors").innerHTML = COLORS.map((c, i) => `<button style="background:${c}" data-c="${c}" class="${i ? "" : "on"}" aria-label="Pen color ${i + 1}"></button>`).join("");
+  $("#s21colors").innerHTML = COLORS.map((c, i) => `<button style="background:${c}" data-c="${c}" class="${i ? "" : "on"}" aria-label="${CNAMES[i]} pen"></button>`).join("");
   $$("#s21colors button").forEach(b => b.onclick = () => { color = b.dataset.c; setOn($$("#s21colors button"), b); });
   $$("[data-w]", cv.parentElement).forEach(b => b.onclick = () => { width = +b.dataset.w; setOn($$("[data-w]", cv.parentElement), b); });
   function redraw() {

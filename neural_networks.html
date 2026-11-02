@@ -138,6 +138,27 @@ iframe.view { width: 100%; border: 1px solid var(--line); border-radius: 10px; b
 details summary { cursor: pointer; font-size: 0.85em; color: var(--muted); }
 .cmp { font-size: 0.85em; }
 
+/* build slide: code left, preview right; tabs on small screens */
+.split25 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(14px, 2vw, 28px); height: max(440px, calc(100dvh - 56px - 230px)); }
+.pane25 { display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 0; }
+.pane25 h2 { font-size: 1em; font-weight: 600; margin: 0; color: var(--muted); }
+.pane25 textarea { flex: 1; min-height: 12em; width: 100%; resize: none; font-family: var(--mono); font-size: 0.85em; line-height: 1.5; }
+.pane25 .framebox { position: relative; flex: 1; min-height: 0; }
+.pane25 iframe.view { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pane25 .empty25[hidden] { display: none; }
+.pane25 .empty25 { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--muted); font-size: 1em; border: 1.5px dashed var(--line); border-radius: 10px; background: var(--soft); }
+.tabs25 { display: none; gap: 4px; border-bottom: 1.5px solid var(--line); margin-bottom: 12px; }
+.tabs25 button { font: inherit; font-size: 1em; font-weight: 600; padding: 0.5em 1.1em; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1.5px; background: none; color: var(--muted); cursor: pointer; }
+.tabs25 button[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); }
+@media (max-width: 900px) {
+  .tabs25 { display: flex; }
+  .split25 { display: block; height: auto; }
+  .pane25[hidden] { display: none; }
+  .pane25 h2 { display: none; }
+  .pane25 textarea { min-height: 50vh; flex: none; }
+  .pane25 .framebox { flex: none; height: 70vh; }
+}
+
 nav.bar { position: fixed; left: 0; right: 0; bottom: 0; height: calc(56px + env(safe-area-inset-bottom, 0px)); padding: 0 16px env(safe-area-inset-bottom, 0px); border-top: 1px solid var(--line); background: var(--bg); display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; }
 nav.bar .prog-line { position: absolute; top: -1px; left: 0; height: 2px; background: var(--fg); transition: width 0.3s; }
 nav.bar #count { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); }
@@ -178,7 +199,7 @@ body { overscroll-behavior: none; overflow-x: hidden; }
     <div class="panel stack">
       <div class="rules" id="s2rules"></div>
       <div class="row"><b id="s2score" aria-live="polite"></b><span class="muted small" id="s2batchname"></span></div>
-      <div class="emails" id="s2emails"></div>
+      <div class="emails" id="s2emails" role="list" aria-label="Emails and where your filter sends them"></div>
       <div class="row"><button class="btn primary" id="s2next">New emails arrive</button></div>
     </div>
   </div>
@@ -279,8 +300,9 @@ body { overscroll-behavior: none; overflow-x: hidden; }
     </div>
     <div class="panel stack">
       <div class="row"><button class="btn on" data-d7="blobs">Two groups</button><button class="btn" data-d7="ring">Ring</button></div>
-      <canvas id="s7c" role="img" aria-label="Dots in two colours with a straight dividing line. Drag the line to separate the colours." style="width:100%;max-width:520px;aspect-ratio:1;margin:0 auto;border:1px solid var(--line);border-radius:8px"></canvas>
+      <canvas id="s7c" tabindex="0" role="img" aria-describedby="s7kbd s7score" aria-label="Blue and orange dots with a straight dividing line you can move." style="width:100%;max-width:520px;aspect-ratio:1;margin:0 auto;border:1px solid var(--line);border-radius:8px"></canvas>
       <div id="s7score" aria-live="polite" class="big"></div>
+      <p class="small muted" id="s7kbd" style="margin:0">Keyboard: select the picture, then use the arrow keys to slide the line and the [ and ] keys to tilt it.</p>
     </div>
   </div>
 </section>
@@ -317,10 +339,10 @@ body { overscroll-behavior: none; overflow-x: hidden; }
       <p class="try">Try it: pick a pattern and a number of neurons, then press Train. Try the ring with 1 neuron, then with 4.</p>
     </div>
     <div class="panel stack">
-      <div class="row"><span class="small">Pattern:</span><button class="btn on" data-d9="blobs">Two groups</button><button class="btn" data-d9="ring">Ring</button><button class="btn" data-d9="spiral">Spiral</button></div>
-      <div class="row"><span class="small">Neurons in each hidden layer:</span><button class="btn" data-n9="1">1</button><button class="btn" data-n9="2">2</button><button class="btn on" data-n9="4">4</button><button class="btn" data-n9="8">8</button></div>
+      <div class="row" role="group" aria-labelledby="s9lp"><span class="small" id="s9lp">Pattern:</span><button class="btn on" data-d9="blobs">Two groups</button><button class="btn" data-d9="ring">Ring</button><button class="btn" data-d9="spiral">Spiral</button></div>
+      <div class="row" role="group" aria-labelledby="s9ln"><span class="small" id="s9ln">Neurons in each hidden layer:</span><button class="btn" data-n9="1">1</button><button class="btn" data-n9="2">2</button><button class="btn on" data-n9="4">4</button><button class="btn" data-n9="8">8</button></div>
       <canvas id="s9c" role="img" aria-label="Dots in two colours. The background colour shows what the network answers for each spot." style="width:100%;max-width:400px;aspect-ratio:1;margin:0 auto;border:1px solid var(--line);border-radius:8px"></canvas>
-      <div class="row"><button class="btn primary" id="s9train">Train</button><button class="btn" id="s9reset">Start over</button><span class="mono small" id="s9stat"></span></div>
+      <div class="row"><button class="btn primary" id="s9train">Train</button><button class="btn" id="s9reset">Start over</button><span class="mono small" id="s9stat"></span><span class="sr-only" id="s9live" aria-live="polite"></span></div>
     </div>
   </div>
 </section>
@@ -364,10 +386,11 @@ body { overscroll-behavior: none; overflow-x: hidden; }
     </div>
     <div class="panel stack">
       <div class="row" style="align-items:flex-start;gap:16px">
-        <canvas id="s11pad" role="img" aria-label="Drawing box for a number" class="pad" width="280" height="280"></canvas>
-        <div class="stack" style="gap:6px"><span class="small muted">What the network sees:</span><div class="mini8" id="s11mini"></div><button class="btn" id="s11clear">Clear</button></div>
+        <canvas id="s11pad" role="img" aria-label="Drawing box. Draw a number with a mouse, finger or stylus, or use the Draw a sample number button." class="pad" width="280" height="280"></canvas>
+        <div class="stack" style="gap:6px"><span class="small muted" aria-hidden="true">What the network sees:</span><div class="mini8" id="s11mini" aria-hidden="true"></div><button class="btn" id="s11sample">Draw a sample number</button><button class="btn" id="s11clear">Clear</button></div>
       </div>
-      <div class="bars" id="s11bars"></div>
+      <p class="small" id="s11live" aria-live="polite" style="margin:0"></p>
+      <div class="bars" id="s11bars" role="group" aria-label="How sure the network is about each number"></div>
     </div>
   </div>
 </section>
@@ -383,9 +406,9 @@ body { overscroll-behavior: none; overflow-x: hidden; }
       <p class="try">Try it: these are the 32 hidden neurons from the number reader you just used. Tap one to see the 64 weights coming into it.</p>
     </div>
     <div class="panel stack">
-      <div id="s12neurons" style="display:grid;grid-template-columns:repeat(8,1fr);gap:6px;max-width:360px"></div>
+      <div id="s12neurons" role="group" aria-label="32 hidden neurons" style="display:grid;grid-template-columns:repeat(8,1fr);gap:6px;max-width:360px"></div>
       <div class="row" style="align-items:flex-start;gap:18px">
-        <div class="heat" id="s12heat" style="max-width:180px"></div>
+        <div class="heat" id="s12heat" style="max-width:180px" aria-hidden="true"></div>
         <div class="small" id="s12info" aria-live="polite" style="flex:1;min-width:12em"></div>
       </div>
     </div>
@@ -422,9 +445,9 @@ body { overscroll-behavior: none; overflow-x: hidden; }
       <p class="try">With 3%, the network simply learns Group A's pattern. With 50%, the mistakes are shared more fairly. Doing well for both groups needs plenty of examples from both.</p>
     </div>
     <div class="panel stack">
-      <div class="row"><span class="small">Group B share of the examples:</span><button class="btn" data-b15="0.03">3%</button><button class="btn" data-b15="0.15">15%</button><button class="btn on" data-b15="0.5">50%</button></div>
-      <svg id="s15svg" viewBox="0 0 440 300" style="width:100%;display:block" role="img" aria-label="Two groups and a learned line"></svg>
-      <div class="small muted">● Group A &nbsp; ■ Group B &nbsp; filled = yes, hollow = no</div>
+      <div class="row" role="group" aria-labelledby="s15l"><span class="small" id="s15l">Group B share of the examples:</span><button class="btn" data-b15="0.03">3%</button><button class="btn" data-b15="0.15">15%</button><button class="btn on" data-b15="0.5">50%</button></div>
+      <svg id="s15svg" viewBox="0 0 440 300" style="width:100%;display:block" role="img" aria-label="Group A dots (circles) and Group B dots (squares), with the straight line the network learned to split yes from no"></svg>
+      <div class="small muted" aria-hidden="true">● Group A &nbsp; ■ Group B &nbsp; filled = yes, hollow = no</div>
       <div class="bars" id="s15bars"></div>
     </div>
   </div>
@@ -456,7 +479,7 @@ body { overscroll-behavior: none; overflow-x: hidden; }
       <p class="try">Try it: give the robot instructions to reach the star, then press Run. Or load someone else's instructions and find the mistake.</p>
     </div>
     <div class="panel stack">
-      <div class="grid6" id="s17grid"></div>
+      <div class="grid6" id="s17grid" role="img"></div>
       <div class="row"><button class="btn" data-c="F">Forward</button><button class="btn" data-c="L">Turn left</button><button class="btn" data-c="R">Turn right</button></div>
       <div class="prog" id="s17prog"></div>
       <div class="row"><button class="btn primary" id="s17run">Run</button><button class="btn" id="s17undo">Undo</button><button class="btn" id="s17clear">Clear</button><button class="btn" id="s17buggy">Load instructions with a mistake</button></div>
@@ -559,17 +582,30 @@ body { overscroll-behavior: none; overflow-x: hidden; }
 <!-- 25 -->
 <section class="slide" data-init="s25">
   <h1>Build your app</h1>
-  <div class="stack">
-    <p class="small" style="margin:0">Paste the code the AI gave you. Press Preview to try it here, or Download to save it as a file you can open and share.</p>
-    <textarea id="s25code" rows="8" style="width:100%;font-family:var(--mono);font-size:0.75em" placeholder="Paste your code here" spellcheck="false" aria-label="App code"></textarea>
-    <div class="row">
-      <button class="btn primary" id="s25prev">Preview</button>
-      <button class="btn" id="s25tab">Open in a new tab</button>
-      <button class="btn" id="s25dl">Download</button>
-      <label class="small" for="s25name">File name</label><input type="text" id="s25name" value="my-app.html" style="width:12em">
-      <span class="small muted" id="s25msg" aria-live="polite"></span>
+  <p style="margin:0 0 16px">Paste the code the AI gave you. Press Preview to try it here, or Download to save it as a file you can open and share.</p>
+  <div class="tabs25" id="s25tabs" aria-label="Build your app">
+    <button type="button" id="s25t-code" aria-controls="s25p-code">Code</button>
+    <button type="button" id="s25t-prev" aria-controls="s25p-prev">Preview</button>
+  </div>
+  <div class="split25">
+    <div class="pane25" id="s25p-code">
+      <h2 id="s25h-code">Your code</h2>
+      <textarea id="s25code" placeholder="Paste your code here" spellcheck="false" aria-label="App code"></textarea>
+      <div class="row">
+        <button class="btn primary" id="s25prev">Preview</button>
+        <button class="btn" id="s25tab">Open in a new tab</button>
+        <button class="btn" id="s25dl">Download</button>
+      </div>
+      <div class="row"><label for="s25name">File name</label><input type="text" id="s25name" value="my-app.html" style="width:12em"></div>
+      <span class="muted" id="s25msg" role="status" aria-live="polite"></span>
     </div>
-    <iframe class="view" id="s25frame" title="Your app" style="height:70vh" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads"></iframe>
+    <div class="pane25" id="s25p-prev">
+      <h2 id="s25h-prev">Preview</h2>
+      <div class="framebox">
+        <div class="empty25" id="s25empty">Paste your code, then press Preview to try your app here.</div>
+        <iframe class="view" id="s25frame" title="Preview of your app" hidden sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads"></iframe>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -649,7 +685,7 @@ INIT.s2 = () => {
     { name: 'Says "winner" or "won"', test: e => /winner|\bwon\b/i.test(e.s) },
     { name: 'Has "!!"', test: e => /!!/.test(e.s) },
     { name: 'Mentions a password', test: e => /password/i.test(e.s) },
-    { name: "From someone you don't know", test: e => !e.known }
+    { name: "Is from someone you don't know", test: e => !e.known }
   ];
   const BATCHES = [
     [
@@ -676,7 +712,7 @@ INIT.s2 = () => {
     let right = 0;
     $("#s2emails").innerHTML = BATCHES[batch].map(e => {
       const said = on.some(r => r.test(e)); const ok = said === e.spam; if (ok) right++;
-      return `<div class="email ${ok ? "right" : "wrong"}"><div><div>${esc(e.s)}</div><div class="who">from ${esc(e.f)} · really ${e.spam ? "spam" : "not spam"}</div></div><div class="verdict">${said ? "Spam" : "Inbox"} <span class="${ok ? "ok" : "no"}">${ok ? "✓" : "✗"}</span></div></div>`;
+      return `<div class="email ${ok ? "right" : "wrong"}" role="listitem"><div><div>${esc(e.s)}</div><div class="who">from ${esc(e.f)} · really ${e.spam ? "spam" : "not spam"}</div></div><div class="verdict">${said ? "Spam" : "Inbox"} <span class="${ok ? "ok" : "no"}"><span aria-hidden="true">${ok ? "✓" : "✗"}</span><span class="sr-only">${ok ? "(correct)" : "(wrong)"}</span></span></div></div>`;
     }).join("");
     $("#s2score").textContent = `${right} of 6 correct`;
     $("#s2batchname").textContent = batch ? "New emails" : "First emails";
@@ -877,6 +913,17 @@ INIT.s7 = el => {
   });
   const release = () => { grab = null; cv.style.cursor = "grab"; };
   cv.addEventListener("pointerup", release); cv.addEventListener("pointercancel", release);
+  cv.addEventListener("keydown", e => {
+    const mv = { ArrowLeft: [-0.05, 0], ArrowRight: [0.05, 0], ArrowUp: [0, 0.05], ArrowDown: [0, -0.05] }[e.key];
+    const rot = { "[": -0.08, "]": 0.08 }[e.key];
+    if (!mv && !rot) return;
+    e.preventDefault(); e.stopPropagation();
+    let nA, nB;
+    if (mv) { nA = [A[0] + mv[0], A[1] + mv[1]]; nB = [B[0] + mv[0], B[1] + mv[1]]; }
+    else { const cx = (A[0] + B[0]) / 2, cy = (A[1] + B[1]) / 2, c = Math.cos(rot), sn = Math.sin(rot); const r = p => [cx + (p[0] - cx) * c - (p[1] - cy) * sn, cy + (p[0] - cx) * sn + (p[1] - cy) * c]; nA = r(A); nB = r(B); }
+    if ([...nA, ...nB].some(v => v < -1 || v > 1)) return;
+    A[0] = nA[0]; A[1] = nA[1]; B[0] = nB[0]; B[1] = nB[1]; draw();
+  });
   $$("[data-d7]", el).forEach(b => b.onclick = () => { setOn($$("[data-d7]", el), b); kind = b.dataset.d7; pts = makeData(kind, kind === "ring" ? 80 : 60, 7); draw(); });
   SHOW.s7 = draw; draw();
 };
@@ -962,9 +1009,10 @@ INIT.s9 = el => {
   function mixWhite(c, t) { return `rgb(${c.map(v => Math.round(255 + (v - 255) * t)).join(",")})`; }
   function loop() {
     for (let e = 0; e < 4; e++) { for (let k = 0; k < pts.length; k++) { const p = pts[(k * 7919 + rounds) % pts.length]; netTrainOne(net, [p[0], p[1]], p[2], 0.04); } rounds++; }
-    draw(); if (running && rounds < 4000) raf = requestAnimationFrame(loop); else { running = false; $("#s9train").textContent = "Train"; }
+    draw(); if (running && rounds < 4000) raf = requestAnimationFrame(loop); else { const was = running; running = false; $("#s9train").textContent = "Train"; if (was) say9("Finished"); }
   }
-  $("#s9train").onclick = () => { if (running) { running = false; $("#s9train").textContent = "Train"; return; } running = true; $("#s9train").textContent = "Pause"; raf = requestAnimationFrame(loop); };
+  function say9(w) { $("#s9live").textContent = `${w} after ${rounds.toLocaleString()} practice rounds. Correct: ${pct(acc())}.`; }
+  $("#s9train").onclick = () => { if (running) { running = false; $("#s9train").textContent = "Train"; say9("Paused"); return; } running = true; $("#s9train").textContent = "Pause"; raf = requestAnimationFrame(loop); };
   $("#s9reset").onclick = reset;
   $$("[data-d9]", el).forEach(b => b.onclick = () => { setOn($$("[data-d9]", el), b); kind = b.dataset.d9; reset(); });
   $$("[data-n9]", el).forEach(b => b.onclick = () => { setOn($$("[data-n9]", el), b); n = +b.dataset.n9; reset(); });
@@ -1007,7 +1055,7 @@ function digitPredict(v) {
 }
 INIT.s11 = () => {
   const cv = $("#s11pad"), g = cv.getContext("2d"); let drawing = false, lastP = null, dirty = false;
-  function clear() { g.fillStyle = "#fff"; g.fillRect(0, 0, 280, 280); $("#s11mini").innerHTML = "<i></i>".repeat(64); renderBars($("#s11bars"), [...Array(10)].map((_, i) => ({ label: String(i), p: 0, v: "" })), 1); dirty = false; }
+  function clear() { $("#s11live").textContent = ""; g.fillStyle = "#fff"; g.fillRect(0, 0, 280, 280); $("#s11mini").innerHTML = "<i></i>".repeat(64); renderBars($("#s11bars"), [...Array(10)].map((_, i) => ({ label: String(i), p: 0, v: "" })), 1); dirty = false; }
   const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * 280, (e.clientY - r.top) / r.height * 280]; };
   cv.addEventListener("pointerdown", e => { drawing = true; lastP = pt(e); cv.setPointerCapture(e.pointerId); stroke(e); });
   cv.addEventListener("pointermove", e => { if (drawing) stroke(e); });
@@ -1030,19 +1078,31 @@ INIT.s11 = () => {
     $("#s11mini").innerHTML = v.map(a => `<i style="background:rgb(${255 - a * 240},${255 - a * 240},${255 - a * 240})"></i>`).join("");
     const p = digitPredict(v); const best = p.indexOf(Math.max(...p));
     renderBars($("#s11bars"), p.map((q, i) => ({ label: String(i), p: q, cls: i === best ? "hl" : "" })), 1);
+    $("#s11live").textContent = `${sampleName ? `Drew a sample ${sampleName}. ` : ""}The network thinks it is a ${best} (${pct(p[best])} sure).`; sampleName = "";
   }
-  $("#s11clear").onclick = clear; clear();
+  // Sample numbers, drawn as pen strokes, for anyone who can't draw in the box.
+  const SAMPLES = SAMPLE_DIGITS; let si = 0, sampleName = "";
+  $("#s11sample").onclick = () => {
+    clear(); const [name, strokes] = SAMPLES[si++ % SAMPLES.length];
+    g.strokeStyle = "#111"; g.lineWidth = 24; g.lineCap = "round"; g.lineJoin = "round";
+    strokes.forEach(st => { g.beginPath(); st.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke(); });
+    dirty = true; sampleName = name; predict();
+  };
+  $("#s11clear").onclick = () => { clear(); $("#s11live").textContent = "Cleared."; }; clear();
 };
+
+/* Pen strokes for the sample numbers on slide 11 (280 by 280 box). */
+const SAMPLE_DIGITS = [["0",[[[210,140],[208,167],[201,193],[189,214],[175,231],[158,241],[140,245],[122,241],[105,231],[91,214],[79,193],[72,167],[70,140],[72,113],[79,88],[91,66],[105,49],[122,39],[140,35],[158,39],[175,49],[189,66],[201,87],[208,113],[210,140]]]],["1",[[[140,40],[140,240]]]],["2",[[[76,86],[82,70],[94,56],[110,46],[130,41],[150,41],[170,46],[186,56],[198,70],[204,86],[204,104],[198,120],[186,134],[80,240],[210,240]]]],["3",[[[78,75],[88,59],[105,47],[126,41],[147,41],[168,48],[184,61],[193,77],[195,95],[188,113],[175,127],[157,137],[135,140],[135,130],[158,134],[178,144],[193,160],[200,179],[198,199],[188,217],[170,231],[149,239],[125,239],[103,233],[84,220],[73,202]]]],["4",[[[175,240],[175,40],[70,175],[215,175]]]],["5",[[[200,45],[95,45],[85,130],[86,131],[106,119],[130,113],[155,116],[177,126],[194,142],[204,163],[204,185],[196,206],[180,223],[158,234],[133,237],[109,233],[88,221],[73,203]]]],["6",[[[180,40],[140,60],[115,110],[110,170],[125,225],[160,240],[185,210],[180,170],[150,160],[115,185]]]],["7",[[[70,45],[210,45],[120,245]]]],["8",[[[185,60],[140,40],[95,60],[95,100],[185,180],[185,225],[140,245],[95,225],[95,180],[185,100],[185,60]]]],["9",[[[198,95],[195,112],[187,127],[174,139],[158,147],[140,150],[122,147],[106,139],[93,127],[85,112],[82,95],[85,78],[93,63],[106,51],[122,43],[140,40],[158,43],[174,51],[187,63],[195,78],[198,95],[198,95],[185,245]]]]];
 
 /* ---------- 12: black box weights ---------- */
 function heatColor(v, m) { const a = Math.min(1, Math.abs(v) / m); const c = v >= 0 ? [29, 78, 216] : [217, 119, 6]; return `rgb(${c.map(x => Math.round(255 + (x - 255) * a)).join(",")})`; }
 INIT.s12 = () => {
   const box = $("#s12neurons");
-  box.innerHTML = Array.from({ length: 32 }, (_, j) => `<button class="tog" data-h="${j}" style="aspect-ratio:1;padding:0;border-radius:50%;font-size:0.7em">${j + 1}</button>`).join("");
+  box.innerHTML = Array.from({ length: 32 }, (_, j) => `<button class="tog" data-h="${j}" aria-label="Neuron ${j + 1}" style="aspect-ratio:1;padding:0;border-radius:50%;font-size:0.7em">${j + 1}</button>`).join("");
   function show(j) {
     $$("[data-h]").forEach(b => b.classList.toggle("on", +b.dataset.h === j));
     const ws = DIGITS.W1.map(row => row[j]); const m = Math.max(...ws.map(Math.abs));
-    $("#s12heat").innerHTML = ws.map(v => `<i style="background:${heatColor(v, m)}" title="${v}"></i>`).join("");
+    $("#s12heat").innerHTML = ws.map(v => `<i style="background:${heatColor(v, m)}"></i>`).join("");
     const out = DIGITS.W2[j]; const top = out.map((v, k) => [k, v]).sort((a, b) => b[1] - a[1])[0];
     $("#s12info").innerHTML = `<b>Neuron ${j + 1}</b><br>Its first eight weights: <span class="mono">${ws.slice(0, 8).map(v => v.toFixed(2)).join(", ")}</span>, and 56 more.<br><br>The grid shows all 64 weights, one for each square of the drawing. Blue pushes up, orange pushes down.<br><br>It pushes hardest toward the answer "${top[0]}", but it also affects every other answer. What is it looking for? Nobody can say for sure.`;
   }
@@ -1110,7 +1170,9 @@ INIT.s17 = () => {
   let prog = [], running = false;
   const cells = []; $("#s17grid").innerHTML = ""; for (let y = 0; y < 6; y++) for (let x = 0; x < 6; x++) { const d = document.createElement("div"); if (WALLS.has(x + "," + y)) d.className = "wall"; $("#s17grid").appendChild(d); cells.push(d); }
   const cell = (x, y) => cells[y * 6 + x];
-  function paint(p, dir, trail) { cells.forEach((c, i) => { const x = i % 6, y = Math.floor(i / 6); c.textContent = ""; if (!WALLS.has(x + "," + y)) c.className = trail && trail.has(x + "," + y) ? "trail" : ""; }); cell(...GOAL).textContent = "⭐"; cell(...p).textContent = ARROW[dir]; }
+  function paint(p, dir, trail) { cells.forEach((c, i) => { const x = i % 6, y = Math.floor(i / 6); c.textContent = ""; if (!WALLS.has(x + "," + y)) c.className = trail && trail.has(x + "," + y) ? "trail" : ""; }); cell(...GOAL).textContent = "⭐"; cell(...p).textContent = ARROW[dir];
+    const FACE = ["up", "right", "down", "left"], at = q => `column ${q[0] + 1}, row ${q[1] + 1}`;
+    $("#s17grid").setAttribute("aria-label", `6 by 6 grid, counted from the top left. The robot is at ${at(p)}, facing ${FACE[dir]}. The star is at ${at(GOAL)}. Walls are at ${[...WALLS].map(w => at(w.split(",").map(Number))).join("; ")}.`); }
   function showProg(now) { $("#s17prog").innerHTML = prog.length ? prog.map((c, i) => `<span class="${i === now ? "now" : ""}">${i + 1}. ${LABEL[c]}</span>`).join("") : `<span class="muted" style="background:none">Your instructions will appear here.</span>`; }
   paint(START, 0); showProg(-1);
   document.querySelectorAll("[data-c]").forEach(b => b.onclick = () => { if (running) return; prog.push(b.dataset.c); showProg(-1); });
@@ -1228,7 +1290,38 @@ INIT.s25 = () => {
   }
   const msg = m => { $("#s25msg").textContent = m; };
   function check() { const t = clean(); if (!t) { msg("Paste your code first."); return null; } if (!/<\w+/.test(t)) { msg("That doesn't look like a web page. Make sure you copied the whole code block."); return null; } msg(""); return t; }
-  $("#s25prev").onclick = () => { const t = check(); if (t) $("#s25frame").srcdoc = t; };
+  // Side by side on wide screens; tabs on small screens.
+  const mq = matchMedia("(max-width: 900px)"), tabs = [$("#s25t-code"), $("#s25t-prev")], panes = [$("#s25p-code"), $("#s25p-prev")], heads = ["#s25h-code", "#s25h-prev"];
+  let sel = 0;
+  function select(i, focus) {
+    sel = i;
+    tabs.forEach((t, j) => { t.setAttribute("aria-selected", String(j === i)); t.tabIndex = j === i ? 0 : -1; });
+    if (mq.matches) panes.forEach((p, j) => { p.hidden = j !== i; });
+    if (focus) tabs[i].focus();
+  }
+  function layout() {
+    const narrow = mq.matches;
+    $("#s25tabs").setAttribute("role", narrow ? "tablist" : "presentation");
+    tabs.forEach(t => narrow ? t.setAttribute("role", "tab") : t.removeAttribute("role"));
+    panes.forEach((p, j) => {
+      if (narrow) { p.setAttribute("role", "tabpanel"); p.setAttribute("aria-labelledby", tabs[j].id); }
+      else { p.setAttribute("role", "region"); p.setAttribute("aria-labelledby", heads[j].slice(1)); p.hidden = false; }
+    });
+    select(sel);
+  }
+  tabs.forEach((t, i) => t.onclick = () => select(i));
+  $("#s25tabs").addEventListener("keydown", e => {
+    const k = { ArrowRight: 1, ArrowLeft: -1, Home: "h", End: "e" }[e.key]; if (!k || !mq.matches) return;
+    e.preventDefault(); e.stopPropagation();
+    select(k === "h" ? 0 : k === "e" ? 1 : (sel + k + 2) % 2, true);
+  });
+  mq.addEventListener("change", layout); layout();
+  $("#s25prev").onclick = () => {
+    const t = check(); if (!t) return;
+    const f = $("#s25frame"); f.srcdoc = t; f.hidden = false; $("#s25empty").hidden = true;
+    if (mq.matches) { select(1, true); msg(""); }
+    else msg("Your app is in the preview on the right.");
+  };
   $("#s25tab").onclick = () => { const t = check(); if (!t) return; const u = URL.createObjectURL(new Blob([t], { type: "text/html" })); window.open(u, "_blank"); };
   $("#s25dl").onclick = () => { const t = check(); if (!t) return; let n = $("#s25name").value.trim() || "my-app.html"; if (!/\.html?$/i.test(n)) n += ".html"; download(n, t); msg("Saved. Open the file to use your app."); };
 };
