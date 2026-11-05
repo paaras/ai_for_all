@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reasoning Models</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+:root {
+  --bg: #ffffff; --fg: #111111; --muted: #5b5f66; --line: #d7dae0; --soft: #f3f4f6;
+  --accent: #1d4ed8; --accent-soft: #e5edff; --good: #15803d; --good-soft: #e3f5e8;
+  --bad: #b91c1c; --bad-soft: #fde8e8; --hl: #fff2b3; --orange: #d97706;
+  --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --body: clamp(16px, 0.9vw + 8px, 23px); --small: 0.8em;
+  color-scheme: light;
+}
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: var(--body); line-height: 1.5; }
+* { box-sizing: border-box; }
+#deck { height: calc(100% - 56px - env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
+.slide { display: none; max-width: 1320px; margin: 0 auto; padding-block: clamp(20px, 4vh, 48px) 32px; padding-inline: clamp(16px, 4vw, 64px); }
+.slide.active { display: block; }
+.slide h1 { font-size: clamp(28px, 2.2vw + 12px, 50px); line-height: 1.15; font-weight: 700; margin: 0 0 0.7em; text-wrap: balance; letter-spacing: -0.01em; }
+.cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(20px, 3vw, 56px); align-items: start; }
+.cols.even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.text p { margin: 0 0 0.8em; max-width: 36em; }
+.text p:last-child { margin-bottom: 0; }
+.text ul, .text ol { margin: 0 0 0.8em; padding-left: 1.2em; }
+.text li { margin-bottom: 0.35em; }
+.try { color: var(--muted); font-size: var(--small); }
+.cap { color: var(--muted); font-size: var(--small); margin: 0.5em 0 0; }
+@media (max-width: 900px) { .cols, .cols.even { grid-template-columns: minmax(0, 1fr); } }
+.title-slide { padding-top: 18vh; }
+.title-slide h1 { font-size: clamp(40px, 5vw + 10px, 90px); margin-bottom: 0.4em; }
+.title-slide p { max-width: 34em; }
+
+.panel { border: 1px solid var(--line); border-radius: 10px; padding: clamp(14px, 1.4vw, 22px); min-width: 0; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button.btn { font: inherit; font-size: 0.85em; padding: 0.45em 0.95em; border: 1.5px solid var(--fg); background: var(--bg); color: var(--fg); border-radius: 7px; cursor: pointer; }
+button.btn:hover { background: var(--soft); }
+button.btn.primary { background: var(--fg); color: var(--bg); }
+button.btn.primary:hover { background: #333; }
+button.btn:disabled { opacity: 0.4; cursor: default; }
+button.btn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+input[type=text], textarea, select { font: inherit; font-size: 0.9em; border: 1.5px solid var(--line); border-radius: 7px; padding: 0.4em 0.6em; background: var(--bg); color: var(--fg); max-width: 100%; }
+input[type=text]:focus, textarea:focus, select:focus { border-color: var(--accent); outline: none; }
+input[type=range] { accent-color: var(--accent); width: 100%; }
+label.sl { display: grid; grid-template-columns: 7.5em minmax(0, 1fr) 3em; gap: 10px; align-items: center; font-size: 0.85em; }
+label.sl output { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--mono); }
+.big { font-size: 1.25em; }
+.muted { color: var(--muted); }
+.small { font-size: 0.85em; }
+svg text { font-family: var(--sans); }
+canvas { display: block; touch-action: none; }
+
+.bars { display: flex; flex-direction: column; gap: 6px; }
+.barrow { display: grid; grid-template-columns: minmax(4em, 10em) minmax(0, 1fr) 3.6em; gap: 10px; align-items: center; font-size: 0.85em; }
+.barrow .bl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barrow .bt { height: 1.1em; background: var(--soft); border-radius: 4px; overflow: hidden; }
+.barrow .bf { display: block; height: 100%; background: #9aa3b2; border-radius: 4px; transition: width 0.3s ease; }
+.barrow .bv { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.barrow.hl .bf { background: var(--accent); }
+.barrow.hl .bl { font-weight: 600; }
+.barrow.badbar .bf { background: var(--bad); }
+.barrow.goodbar .bf { background: var(--good); }
+
+table.t { border-collapse: collapse; width: 100%; font-size: 0.85em; }
+table.t th, table.t td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+table.t th { font-weight: 600; }
+.ok { color: var(--good); font-weight: 700; }
+.no { color: var(--bad); font-weight: 700; }
+
+/* toggles */
+.tog { font: inherit; font-size: 0.85em; padding: 0.4em 0.8em; border: 1.5px solid var(--line); background: var(--bg); border-radius: 999px; cursor: pointer; color: var(--fg); }
+.tog.on { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+
+nav.bar { position: fixed; left: 0; right: 0; bottom: 0; height: calc(56px + env(safe-area-inset-bottom, 0px)); padding: 0 16px env(safe-area-inset-bottom, 0px); border-top: 1px solid var(--line); background: var(--bg); display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; }
+nav.bar .prog-line { position: absolute; top: -1px; left: 0; height: 2px; background: var(--fg); transition: width 0.3s; }
+nav.bar #count { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); }
+nav.bar button { font-size: 14px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* ---------- Accessibility and mobile fixes ---------- */
+/* Stop double-tap zoom and browser swipe gestures, but keep pinch-zoom available */
+html { touch-action: manipulation; overscroll-behavior: none; }
+body { overscroll-behavior: none; overflow-x: hidden; }
+#deck { overscroll-behavior: contain; overflow-x: hidden; }
+@media (max-width: 500px) { table.t { font-size: 0.72em; } table.t th, table.t td { padding: 5px 4px; } }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+/* ---------- this deck ---------- */
+.prompt-out { width: 100%; min-height: 12em; font-family: var(--mono); font-size: 0.75em; line-height: 1.5; background: var(--soft); }
+.example { border-left: 4px solid var(--line); padding: 6px 12px; margin: 6px 0; font-size: 0.9em; }
+.example.goodx { border-color: var(--good); }
+.example.badx { border-color: var(--bad); }
+.qbox { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: var(--soft); }
+.reveal { border-radius: 8px; padding: 10px 12px; font-size: 0.9em; }
+.reveal.good { background: var(--good-soft); }
+.reveal.bad { background: var(--bad-soft); }
+.reveal.info { background: var(--accent-soft); }
+.reveal:empty { display: none; }
+
+/* chat */
+.chat { display: flex; flex-direction: column; gap: 8px; }
+.bubble { border-radius: 12px; padding: 8px 12px; font-size: 0.85em; max-width: 92%; }
+.bubble.user { background: var(--soft); align-self: flex-end; }
+.bubble.ai { border: 1px solid var(--line); align-self: flex-start; }
+.bubble p { margin: 0 0 0.4em; }
+.bubble p:last-child { margin: 0; }
+.who { font-size: 0.75em; color: var(--muted); margin-bottom: 2px; }
+.think { border-left: 3px solid #9aa3b2; background: var(--soft); color: #3d4148; font-size: 0.82em; padding: 8px 12px; border-radius: 0 8px 8px 0; }
+.think p { margin: 0 0 0.45em; }
+.think p:last-child { margin: 0; }
+.think .lbl { font-size: 0.85em; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+.wait { background: var(--hl); border-radius: 3px; padding: 0 2px; font-weight: 600; }
+.fadein { animation: fadein 0.35s ease; }
+@keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* tokens and passes */
+.toks { display: flex; flex-wrap: wrap; gap: 4px; min-height: 1.8em; }
+.tok { font-family: var(--mono); font-size: 0.72em; padding: 2px 6px; border-radius: 5px; background: var(--soft); white-space: pre; }
+.tok.ans { background: var(--hl); font-weight: 700; }
+.passes { display: flex; flex-wrap: wrap; gap: 3px; min-height: 14px; }
+.passes i { width: 12px; height: 12px; border-radius: 2px; background: #9aa3b2; display: block; }
+.passes i.ans { background: var(--orange); }
+.lane { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.lane h2 { font-size: 0.9em; margin: 0; }
+
+/* checklist */
+.checks { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; font-size: 0.85em; }
+.checks li { display: grid; grid-template-columns: 1.6em minmax(0, 1fr); gap: 4px; align-items: start; }
+.checks .mk { font-weight: 700; text-align: center; color: var(--muted); }
+.checks li.pass .mk { color: var(--good); }
+.checks li.fail .mk { color: var(--bad); }
+.checks li.fail { background: var(--bad-soft); border-radius: 5px; }
+
+/* plan list */
+.plan { margin: 0.2em 0 0; padding-left: 1.2em; }
+.plan li { margin-bottom: 2px; }
+
+/* sort cards */
+.sorts { display: flex; flex-direction: column; gap: 6px; }
+.sortrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 10px; align-items: center; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 0.82em; }
+.sortrow .why { grid-column: 1 / -1; font-size: 0.92em; color: var(--muted); }
+.sortrow .why:empty { display: none; }
+.sortrow.right { border-color: #b7dfc3; background: var(--good-soft); }
+.sortrow.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.seg { display: inline-flex; border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.9em; border: 0; background: var(--bg); color: var(--fg); padding: 0.3em 0.8em; cursor: pointer; }
+.seg button + button { border-left: 1.5px solid var(--line); }
+.seg button.on { background: var(--accent); color: #fff; }
+
+/* steps to tap */
+.steps { display: flex; flex-direction: column; gap: 6px; }
+.steps button { font: inherit; font-size: 0.85em; text-align: left; border: 1.5px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); padding: 8px 12px; cursor: pointer; display: grid; grid-template-columns: 1.6em minmax(0, 1fr); gap: 6px; }
+.steps button:hover { background: var(--soft); }
+.steps button .n { color: var(--muted); font-family: var(--mono); }
+.steps button.picked-bad { border-color: var(--bad); background: var(--bad-soft); }
+.steps button.picked-good { border-color: var(--good); background: var(--good-soft); }
+.steps button.after { color: var(--muted); }
+
+/* attempts */
+.attempts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.att { border: 1.5px solid var(--line); border-radius: 8px; padding: 6px 8px; font-size: 0.7em; line-height: 1.35; min-height: 6.2em; }
+.att .res { font-weight: 700; font-size: 1.1em; }
+.att.ok { border-color: var(--good); background: var(--good-soft); }
+.att.no { border-color: #e3a3a3; }
+.att .res.ok { color: var(--good); }
+.att .res.no { color: var(--bad); }
+@media (max-width: 600px) { .attempts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* experts */
+.moe { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.ex { border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 6px; text-align: center; font-size: 0.8em; transition: background 0.2s, border-color 0.2s; }
+.ex b { display: block; font-family: var(--mono); font-size: 1.1em; }
+.ex.lit { background: var(--accent); border-color: var(--accent); color: #fff; }
+.router { border: 1.5px dashed var(--fg); border-radius: 8px; padding: 8px 10px; text-align: center; font-size: 0.85em; }
+.tokline { display: flex; flex-wrap: wrap; gap: 4px; }
+.tokline .tok.now { background: var(--hl); font-weight: 700; }
+.tokline .tok.done { opacity: 0.55; }
+.colorline { display: flex; flex-wrap: wrap; gap: 3px; line-height: 1.9; }
+.colorline span { font-family: var(--mono); font-size: 0.72em; padding: 1px 5px; border-radius: 4px; color: #111; }
+.legend8 { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.75em; color: var(--muted); }
+.legend8 i { display: inline-block; width: 0.9em; height: 0.9em; border-radius: 2px; vertical-align: -0.1em; margin-right: 3px; }
+
+/* bars with two parts */
+.pair { display: grid; grid-template-columns: minmax(6em, 11em) minmax(0, 1fr); gap: 4px 10px; align-items: center; font-size: 0.82em; cursor: pointer; border-radius: 8px; padding: 4px 6px; border: 1.5px solid transparent; background: none; font-family: inherit; color: inherit; text-align: left; width: 100%; }
+.pair:hover { background: var(--soft); }
+.pair.on { border-color: var(--accent); }
+.pair .tr { position: relative; height: 1.5em; background: var(--soft); border-radius: 4px; overflow: hidden; }
+.pair .all { position: absolute; left: 0; top: 0; bottom: 0; background: #c3c9d3; border-radius: 4px; }
+.pair .act { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 4px; }
+.pair .nm b { display: block; }
+.pair .nm span { color: var(--muted); font-size: 0.85em; }
+
+/* stat cards */
+.stat { font-size: 1.9em; font-weight: 700; line-height: 1.1; margin-bottom: 4px; }
+
+/* tool cards */
+.tool h2 { margin: 0 0 6px; font-size: 1.05em; }
+.tool p { font-size: 0.85em; color: var(--fg); margin: 0 0 4px; }
+
+/* prompt builder */
+.field { display: flex; flex-direction: column; gap: 4px; font-size: 0.85em; }
+.field input, .field textarea { width: 100%; }
+.field textarea { min-height: 5.5em; resize: vertical; }
+table.tally { border-collapse: collapse; width: 100%; font-size: 0.8em; }
+table.tally th, table.tally td { border-bottom: 1px solid var(--line); padding: 5px 6px; text-align: left; vertical-align: middle; }
+table.tally td.c, table.tally th.c { text-align: center; width: 5.5em; }
+table.tally input { width: 1.2em; height: 1.2em; accent-color: var(--good); }
+
+/* chart svg */
+.chart text { font-size: 12px; fill: var(--muted); }
+[hidden] { display: none !important; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(15em, 1fr)); gap: 12px; }
+.card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.card h2, .card h3 { margin: 0 0 4px; font-size: 1em; }
+.card p { margin: 0; font-size: 0.85em; color: var(--muted); }
+.bars.wide .barrow { grid-template-columns: minmax(0, 13em) minmax(0, 1fr) 3.6em; }
+.bars.wide .barrow .bl { white-space: normal; overflow: visible; }
+.steps button > span:last-child { display: block; }
+.attbar { display: block; height: 6px; margin-top: 5px; background: var(--accent); border-radius: 3px; transition: width 0.3s; }
+.steps button:disabled { cursor: default; background: var(--soft); color: var(--fg); }
+.think p.dim { opacity: 0.3; }
+.think p.wait-line { background: var(--hl); border-radius: 4px; padding: 2px 4px; margin-left: -4px; color: var(--fg); }
+.attempts .att { min-height: 0; }
+#s7att { grid-template-columns: repeat(9, minmax(0, 1fr)); }
+#s7att .att { text-align: center; padding: 6px 2px; }
+@media (max-width: 600px) { #s7att { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.sizes3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.sizecard { font: inherit; text-align: left; border: 1.5px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--fg); padding: 10px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
+.sizecard span { font-size: 0.75em; color: var(--muted); }
+.sizecard.on { border-color: var(--accent); background: var(--accent-soft); }
+table.grid2 td, table.grid2 th { vertical-align: middle; }
+button.cell { font: inherit; font-size: 0.95em; width: 100%; min-height: 3.6em; border: 1.5px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); cursor: pointer; padding: 8px; }
+button.cell.on { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.flow { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 6px; align-items: center; }
+.fbox { border: 1.5px solid var(--line); border-radius: 8px; padding: 8px; font-size: 0.8em; text-align: center; }
+.farrow { color: var(--muted); }
+ol.path { margin: 0; padding: 0; list-style: none; counter-reset: p; display: flex; flex-direction: column; gap: 6px; }
+ol.path li { counter-increment: p; display: grid; grid-template-columns: 1.8em minmax(0, 1fr); gap: 2px 8px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 0.85em; }
+ol.path li::before { content: counter(p); grid-row: span 2; width: 1.6em; height: 1.6em; border-radius: 50%; background: var(--fg); color: var(--bg); display: grid; place-items: center; font-size: 0.85em; font-weight: 700; }
+ol.path li span { color: var(--muted); }
+@media (max-width: 600px) { .flow { grid-template-columns: minmax(0, 1fr); } .farrow { transform: rotate(90deg); justify-self: center; } }
+
+/* ---------- mobile QA fixes ---------- */
+*, *::before, *::after { touch-action: manipulation; }
+canvas { touch-action: none; }
+input[type=text], textarea, select { font-size: max(16px, 0.9em); }
+.prompt-out { font-size: max(16px, 0.75em); }
+.seg button { min-height: 36px; padding: 0.35em 1em; }
+table.tally input { width: 22px; height: 22px; }
+table.tally td.c { padding: 8px 6px; }
+@media (max-width: 600px) {
+  .bars.wide .barrow { grid-template-columns: minmax(0, 1fr) 3.2em; row-gap: 2px; }
+  .bars.wide .barrow .bl { grid-column: 1 / -1; }
+  .pair { grid-template-columns: minmax(0, 1fr); }
+  .sortrow { grid-template-columns: minmax(0, 1fr); }
+}
+.sortrow .seg { justify-self: start; }
+.toolsteps { display: flex; flex-direction: column; gap: 6px; }
+.tstep { display: grid; grid-template-columns: 5.2em minmax(0, 1fr); gap: 2px 10px; align-items: start; border-radius: 8px; padding: 7px 10px; font-size: 0.82em; }
+.tstep .tlbl { font-weight: 700; font-size: 0.85em; grid-row: span 2; }
+.tstep .tres { grid-column: 2; color: var(--good); font-weight: 600; }
+.tstep.tthink { background: var(--soft); color: #3d4148; }
+.tstep.ttool { border: 1.5px solid var(--accent); background: var(--accent-soft); }
+.tstep.tans { border: 1px solid var(--line); }
+* { -webkit-tap-highlight-color: transparent; }
+</style>
+</head>
+<body>
+<main id="deck" tabindex="0" aria-label="Slides">
+
+<!-- 1 -->
+<section class="slide title-slide">
+  <h1>Reasoning Models</h1>
+  <div class="text">
+      <p class="try">Use the arrow keys or the buttons at the bottom to move between slides</p>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="slide" data-init="bat">
+  <h1>Answer this quickly</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Type the first answer that comes to mind without working it out.</p>
+      <p>Most people say 10 cents, but then the bat would be $1.10 and the total would be $1.20.</p>
+      <p class="try">Try it: type your answer and press Answer</p>
+    </div>
+    <div class="panel stack">
+      <div class="qbox big">A bat and a ball cost $1.10 together. The bat costs $1.00 more than the ball. How much does the ball cost?</div>
+      <div class="row">
+        <label for="batIn" class="small">The ball costs</label>
+        <input type="text" id="batIn" inputmode="decimal" style="width:6em" autocomplete="off"> <span class="small">cents</span>
+        <button class="btn primary" id="batGo">Answer</button>
+      </div>
+      <div class="reveal" id="batMsg" aria-live="polite"></div>
+      <div id="batCheck" hidden>
+        <table class="t">
+          <tr><th>If the ball is</th><th>The bat is</th><th>Together</th></tr>
+          <tr><td>10¢</td><td>$1.10</td><td class="no">$1.20</td></tr>
+          <tr><td>5¢</td><td>$1.05</td><td class="ok">$1.10</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="slide" data-init="passes">
+  <h1>How a regular model answers</h1>
+  <div class="cols">
+    <div class="text">
+      <p>A language model writes one token, or piece of a word, at a time, and each token gets one pass through the model.</p>
+      <p>If the model writes the answer first, it only gets one pass to figure it out, so on a tricky question it gives the quick answer like most people do.</p>
+      <p class="try">Try it: press Play and count the passes before the answer</p>
+    </div>
+    <div class="panel stack">
+      <div class="lane">
+        <h2>Answer first</h2>
+        <div class="toks" id="passTa"></div>
+        <div class="passes" id="passPa" aria-hidden="true"></div>
+        <div class="small mono" id="passCa" aria-live="polite"></div>
+      </div>
+      <div class="lane">
+        <h2>Work first, then answer</h2>
+        <div class="toks" id="passTb"></div>
+        <div class="passes" id="passPb" aria-hidden="true"></div>
+        <div class="small mono" id="passCb" aria-live="polite"></div>
+      </div>
+      <div class="row"><button class="btn primary" id="passGo">Play</button></div>
+      <p class="cap">Each square is one pass through the model, and the orange one writes the answer</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="slide" data-init="cot">
+  <h1>Chain of thought</h1>
+  <div class="cols">
+    <div class="text">
+      <p>If you ask a model to think step by step, it writes out its work before the answer and gets more questions right.</p>
+      <p>This is called chain of thought. It works for the same reason scratch paper helps you with math.</p>
+      <p class="try">Try it: switch between the two prompts</p>
+    </div>
+    <div class="panel stack">
+      <div class="row"><button class="btn on" data-cot="0">Just the question</button><button class="btn" data-cot="1">"Let's think step by step"</button></div>
+      <div class="chat" id="cotChat" aria-live="polite"></div>
+      <div class="bars" id="cotBars"></div>
+      <p class="cap">Scores from a 2022 study on math word problems</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="slide" data-init="attn">
+  <h1>Why writing the steps helps</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Every word the model writes becomes part of what it reads next, so it can use the steps it already wrote.</p>
+      <p>Attention is the part of the model that decides which earlier words to focus on. It lets the model look back at the steps it needs, like you would look back at your own work.</p>
+      <p class="try">Try it: tap a step to see which earlier lines it looked at</p>
+    </div>
+    <div class="panel stack">
+      <div class="steps" id="attnSteps" role="group" aria-label="Steps"></div>
+      <div class="small" id="attnMsg" aria-live="polite"></div>
+      <p class="cap">Longer bars mean more attention (example values)</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="slide" data-init="think">
+  <h1>What happens when you turn on thinking</h1>
+  <div class="cols">
+    <div class="text">
+      <p>A reasoning model has been trained to do chain of thought on its own. When you turn thinking on, it writes its thinking first and then the answer. Most apps hide the thinking or show a short summary of it.</p>
+      <p>The effort setting controls how much it can think. More effort usually gives better answers to hard questions, but it's slower and uses more of your usage limit.</p>
+      <p class="try">Try it: pick an effort level and press Send</p>
+    </div>
+    <div class="panel stack">
+      <div class="bubble user">Is 3,599 a prime number?</div>
+      <div class="row" role="group" aria-label="Thinking effort"><span class="small">Thinking:</span><button class="btn on" data-eff="0">Off</button><button class="btn" data-eff="1">Low</button><button class="btn" data-eff="2">High</button><button class="btn primary" id="thinkGo">Send</button></div>
+      <div id="thinkOut" class="stack" style="gap:8px" aria-live="polite"></div>
+      <div class="row small mono" id="thinkStat"></div>
+      <p class="cap">The thinking and numbers are examples</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="slide" data-init="adaptive">
+  <h1>Most models now decide when to think</h1>
+  <div class="cols">
+    <div class="text">
+      <p>The first reasoning models, like OpenAI's o1 in 2024, always thought before answering. Now most models can answer either way and decide on their own how much to think.</p>
+      <p>Apps call this different things, like Thinking, Think or Extended thinking, but it's the same idea.</p>
+      <p class="try">Try it: tap a question to see how much the model thinks</p>
+    </div>
+    <div class="panel stack">
+      <div class="row" role="group" aria-label="Questions"><button class="btn on" data-ad="0">Capital of Peru?</button><button class="btn" data-ad="1">Make my email friendlier</button><button class="btn" data-ad="2">Is 3,599 prime?</button></div>
+      <div class="bars wide" id="adBars"></div>
+      <div class="reveal info" id="adInfo" aria-live="polite"></div>
+      <p class="cap">Example numbers</p>
+    </div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="slide" data-init="moves">
+  <h1>What the thinking looks like</h1>
+  <div class="cols">
+    <div class="text">
+      <p>The thinking on a hard problem looks like someone working it out on paper. The model makes a plan, tries something, checks it, and goes back if it doesn't work.</p>
+      <p>Nobody programmed these steps. The model learned them in training because they lead to more right answers.</p>
+      <p class="try">Try it: tap Plan, Try, Check or Go back to find each one</p>
+    </div>
+    <div class="panel stack">
+      <div class="bubble user" style="max-width:100%">I'm thinking of a two digit number. The digits add up to 11. If you swap the digits, the number goes up by 27. What's the number?</div>
+      <div class="row" role="group" aria-label="Step types"><button class="btn on" data-mv="all">All</button><button class="btn" data-mv="plan">Plan</button><button class="btn" data-mv="try">Try</button><button class="btn" data-mv="check">Check</button><button class="btn" data-mv="back">Go back</button></div>
+      <div class="think" id="mvThink"></div>
+      <div class="bubble ai"><b>47</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 -->
+<section class="slide" data-init="plan">
+  <h1>Example: a plan with a lot of rules</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Thinking helps most when several things have to be true at once, like in a schedule or a budget.</p>
+      <p>Without thinking, the model writes the plan once and never checks it, so it often misses a rule.</p>
+      <p class="try">Try it: check the answer with thinking off, then turn thinking on and press Next step</p>
+    </div>
+    <div class="panel stack">
+      <div class="bubble user" style="max-width:100%">Plan my Saturday morning. I need to go to the post office (open 9 to 12), the pharmacy (open 10 to 1), and get groceries, including ice cream. I don't have the car until 9:30. Each drive is 10 minutes and each stop takes 20.</div>
+      <div><div class="small muted" style="margin-bottom:4px">The rules:</div><ul class="checks" id="planChecks"></ul></div>
+      <div class="row"><button class="btn on" data-plan="quick">Thinking off</button><button class="btn" data-plan="think">Thinking on</button></div>
+      <div id="planOut" class="stack" style="gap:8px" aria-live="polite"></div>
+      <div class="row" id="planCtl" hidden><button class="btn primary" id="planNext">Next step</button><button class="btn" id="planReset">Start over</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 -->
+<section class="slide" data-init="rl">
+  <h1>How a model learns to think</h1>
+  <div class="cols">
+    <div class="text">
+      <p>After learning from a huge amount of text, the model practices on problems with answers that can be checked, like math, puzzles and code.</p>
+      <p>It tries each problem many times and only the final answer is graded. Its weights, the numbers it learned in training, are then adjusted toward the thinking that got it right. This is called reinforcement learning.</p>
+      <p class="try">Try it: press Practice round a few times, then 20 rounds</p>
+    </div>
+    <div class="panel stack">
+      <div class="small">Each box is one try at the bat and ball question</div>
+      <div class="attempts" id="rlAtt" aria-live="polite"></div>
+      <div class="small muted">How often the model does each thing:</div>
+      <div class="bars wide" id="rlBars"></div>
+      <div class="row"><button class="btn primary" id="rlOne">Practice round</button><button class="btn" id="rlMany">20 rounds</button><button class="btn" id="rlReset">Start over</button><span class="mono small" id="rlStat"></span></div>
+      <p class="cap">A simulation of the idea</p>
+    </div>
+  </div>
+</section>
+
+<!-- 11 -->
+<section class="slide" data-init="effort">
+  <h1>More thinking, better answers</h1>
+  <div class="cols">
+    <div class="text">
+      <p>OpenAI tested o1, its first reasoning model, on a hard high school math contest. GPT-4o, their regular model, solved 12% of the problems and o1 solved 74%.</p>
+      <p>It did even better when it solved each problem many times and picked its most common answer. Wrong answers are usually different each time, but the right answer keeps coming back.</p>
+      <p>The strongest modes today, like Gemini Deep Think and ChatGPT Pro, do something similar by thinking through several ideas at once and comparing them.</p>
+      <p class="try">Try it: press Add more thinking</p>
+    </div>
+    <div class="panel stack">
+      <div class="bars wide" id="effBars" aria-live="polite"></div>
+      <div class="small" id="effNote" aria-live="polite"></div>
+      <div class="row"><button class="btn primary" id="effGo">Add more thinking</button><button class="btn" id="effReset">Start over</button></div>
+      <p class="cap">Results from OpenAI, 2024</p>
+    </div>
+  </div>
+</section>
+
+<!-- 12 -->
+<section class="slide" data-init="tools">
+  <h1>Thinking with tools</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Newer models can use tools while they think. They can search the web, run code to do math, or zoom in on a photo, then keep thinking about what they found.</p>
+      <p>This lets the model look things up and check its math instead of guessing.</p>
+      <p class="try">Try it: press Next step to follow along</p>
+    </div>
+    <div class="panel stack">
+      <div class="bubble user" style="max-width:100%">Is it cheaper to drive or take the train from San Jose to San Francisco and back this Saturday?</div>
+      <div class="toolsteps" id="toolSteps" aria-live="polite"></div>
+      <div class="row"><button class="btn primary" id="toolNext">Next step</button><button class="btn" id="toolReset">Start over</button></div>
+      <p class="cap">The prices are examples</p>
+    </div>
+  </div>
+</section>
+
+<!-- 13 -->
+<section class="slide" data-init="horizon">
+  <h1>Longer and longer tasks</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Because models can now think, use tools and check their work, they can work on a task for a long time without help. AI that does this is often called an agent.</p>
+      <p>A research group called METR measures how long a task AI can finish on its own about half the time, based on how long it takes a person. The length doubles every few months, from a few minutes in 2024 to more than a full workday in 2026.</p>
+      <p class="try">Try it: tap a model</p>
+    </div>
+    <div class="panel stack">
+      <div class="stack" style="gap:6px" id="hzBars"></div>
+      <div class="reveal info" id="hzInfo" aria-live="polite"></div>
+      <p class="cap">Results from METR, mostly on programming tasks</p>
+    </div>
+  </div>
+</section>
+
+<!-- 14 -->
+<section class="slide" data-init="wrong">
+  <h1>Thinking can still be wrong</h1>
+  <div class="cols">
+    <div class="text">
+      <p>The thinking is made of likely tokens like any other text, so a step can be wrong, and every step after it builds on the mistake.</p>
+      <p>Thinking also can't fix facts the model never learned, so still check anything important.</p>
+      <p class="try">Try it: one step is wrong, tap it</p>
+    </div>
+    <div class="panel stack">
+      <div class="bubble user" style="max-width:100%">Dinner was $84. We're leaving a 20% tip and splitting it between 4 people. How much does each person pay?</div>
+      <div class="steps" id="wrongSteps" role="group" aria-label="Thinking steps. Pick the wrong one."></div>
+      <div class="reveal" id="wrongMsg" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 -->
+<section class="slide" data-init="hint">
+  <h1>The thinking isn't always the real reason</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Researchers added hints to multiple choice questions, like a note saying a professor picked A. The models often switched to the hinted answer but usually didn't mention the hint in their thinking.</p>
+      <p>So the thinking is useful for spotting mistakes, but it doesn't always show why the model chose its answer.</p>
+      <p class="try">Try it: compare the question with and without the hint</p>
+    </div>
+    <div class="panel stack">
+      <div class="row"><button class="btn on" data-hint="0">No hint</button><button class="btn" data-hint="1">With a hint</button></div>
+      <div class="chat" id="hintChat" aria-live="polite"></div>
+      <div class="reveal info" id="hintMsg" aria-live="polite"></div>
+      
+    </div>
+  </div>
+</section>
+
+<!-- 16 -->
+<section class="slide" data-init="sizes">
+  <h1>Models come in different sizes</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Most companies make their models in a few sizes. Claude has Haiku, Sonnet and Opus, and Gemini has Flash-Lite, Flash and Pro, from smallest to largest.</p>
+      <p>Bigger models have more weights, so they know more and handle harder tasks, but they're slower and cost more. Smaller models are fast and cheap and work fine for most everyday questions.</p>
+      <p class="try">Try it: tap a size</p>
+    </div>
+    <div class="panel stack">
+      <div class="sizes3" id="sizeCards" role="group" aria-label="Model sizes"></div>
+      <div class="bars wide" id="sizeBars"></div>
+      <div class="reveal info" id="sizeInfo" aria-live="polite"></div>
+      <p class="cap">A rough comparison</p>
+    </div>
+  </div>
+</section>
+
+<!-- 17 -->
+<section class="slide" data-init="grid">
+  <h1>Size and thinking are two different choices</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Size and thinking are separate choices. In Gemini, Flash and Thinking are the same model with thinking off and on, and Pro is a bigger model that also thinks. Claude's Sonnet works the same way, a medium model you can use with thinking on or off.</p>
+      <p>Size decides how much the model knows, and thinking decides how much work it does before answering. A small model that thinks can beat a big model that doesn't on a math problem, but thinking won't help with facts it never learned.</p>
+      <p class="try">Try it: tap each box</p>
+    </div>
+    <div class="panel stack">
+      <table class="t grid2" id="gridT"></table>
+      <div class="reveal info" id="gridInfo" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 18 -->
+<section class="slide" data-init="moe">
+  <h1>Mixture of experts</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Normally every token goes through every weight in the model, which makes big models slow and expensive.</p>
+      <p>A mixture of experts model is split into many smaller parts called experts. A router sends each token to only a few of them, so a huge model only uses a small part of itself for each token.</p>
+      <p class="try">Try it: type a sentence and press Run</p>
+    </div>
+    <div class="panel stack">
+      <div class="row"><input type="text" id="moeIn" value="My grandma makes the best tamales in town" aria-label="Sentence" style="flex:1;min-width:10em"><button class="btn primary" id="moeGo">Run</button></div>
+      <div class="tokline" id="moeToks" aria-hidden="true"></div>
+      <div class="router" id="moeRouter">Router</div>
+      <div class="moe" id="moeGrid"></div>
+      <div class="small" id="moeStat" aria-live="polite"></div>
+      <p class="cap">Real models have many more experts, and the picks here are made up</p>
+    </div>
+  </div>
+</section>
+
+<!-- 19 -->
+<section class="slide" data-init="weights">
+  <h1>How much of the model each token uses</h1>
+  <div class="cols">
+    <div class="text">
+      <p>These models use mixture of experts. The gray bar is all the weights, and the blue bar is how many each token uses. DeepSeek-V3 has 671 billion weights, but each token only uses about 37 billion.</p>
+      <p class="try">Try it: tap a model</p>
+    </div>
+    <div class="panel stack">
+      <div class="stack" style="gap:6px" id="wBars"></div>
+      <div class="small muted"><span style="display:inline-block;width:0.9em;height:0.9em;background:#c3c9d3;border-radius:2px;vertical-align:-0.1em"></span> all weights &nbsp; <span style="display:inline-block;width:0.9em;height:0.9em;background:var(--accent);border-radius:2px;vertical-align:-0.1em"></span> used for each token</div>
+      <div class="reveal info" id="wInfo" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 20 -->
+<section class="slide" data-init="distill">
+  <h1>Small models can learn from big ones</h1>
+  <div class="cols">
+    <div class="text">
+      <p>A big reasoning model can solve lots of problems and write out its thinking. A small model can then be trained on those examples. This is called distillation.</p>
+      <p>The small model learns to work through problems step by step too, which is a big reason small models have gotten so much better.</p>
+      <p class="try">Try it: switch between before and after</p>
+    </div>
+    <div class="panel stack">
+      <div class="flow" aria-hidden="true"><div class="fbox">Big reasoning model<br><span class="small muted">solves lots of problems</span></div><div class="farrow">→</div><div class="fbox">Worked examples with the thinking</div><div class="farrow">→</div><div class="fbox">Small model<br><span class="small muted">trains on them</span></div></div>
+      <div class="row"><button class="btn on" data-dis="0">Small model before</button><button class="btn" data-dis="1">Small model after</button></div>
+      <div class="chat" id="disChat" aria-live="polite"></div>
+      
+    </div>
+  </div>
+</section>
+
+<!-- 21 -->
+<section class="slide" data-init="path">
+  <h1>What happens when you send a message</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Many apps have an Auto setting that picks a model size and whether to think based on your question. Inside the model, each token goes to a few experts, and if thinking is on, the model thinks before it answers.</p>
+      <p class="try">Try it: pick a question to see what might happen</p>
+    </div>
+    <div class="panel stack">
+      <div class="row" role="group" aria-label="Questions"><button class="btn on" data-q="0">Capital of Peru?</button><button class="btn" data-q="1">Birthday message</button><button class="btn" data-q="2">Budget meal plan</button></div>
+      <ol class="path" id="pathList"></ol>
+      <p class="cap">Simplified, since apps don't share exactly how they decide</p>
+    </div>
+  </div>
+</section>
+
+<!-- 22 -->
+<section class="slide" data-init="sort">
+  <h1>Thinking off or on?</h1>
+  <div class="cols">
+    <div class="text">
+      <p>Thinking is slower and uses more of your usage limit, so skip it for quick facts or simple rewording. Turn it on for problems with several steps or rules, or when a wrong answer would cause problems.</p>
+      <p class="try">Try it: pick Off or On for each one, then press Check</p>
+    </div>
+    <div class="panel stack">
+      <div class="sorts" id="sortList"></div>
+      <div class="row"><button class="btn primary" id="sortCheck">Check</button><button class="btn" id="sortReset">Start over</button><b id="sortScore" aria-live="polite"></b></div>
+    </div>
+  </div>
+</section>
+
+<!-- 23 -->
+<section class="slide">
+  <h1>Where to find thinking</h1>
+  <div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,22em),1fr))">
+    <div class="card tool"><h2>ChatGPT</h2><p>Free accounts have a Think button under the message box, and paid plans can pick Thinking from the model menu</p></div>
+    <div class="card tool"><h2>Gemini</h2><p>With your Foothill account, the menu next to the message box has Flash, Thinking and Pro</p></div>
+    <div class="card tool"><h2>Claude</h2><p>Turn on Extended thinking from the tools menu next to the message box</p></div>
+    <div class="card tool"><h2>DeepSeek</h2><p>Free with a switch to turn thinking on, but your chats are stored in China</p></div>
+  </div>
+  <p class="cap" style="margin-top:1em">As of November 2026, and these change often</p>
+</section>
+
+<!-- 24 -->
+<section class="slide" data-init="prompt">
+  <h1>Your turn</h1>
+  <div class="cols">
+    <div class="text">
+      <ol>
+        <li>Pick a real problem with a few rules, like a schedule, a budget or a trip</li>
+        <li>Fill in the boxes and press <b>Copy prompt</b></li>
+        <li>Paste it into a new chat with thinking off, then into another new chat with thinking on</li>
+        <li>Check which rules each answer followed</li>
+      </ol>
+    </div>
+    <div class="panel stack">
+      <label class="field">What are you trying to figure out?<input type="text" id="prGoal" placeholder="Plan a birthday dinner for my mom"></label>
+      <label class="field">Your rules, one per line<textarea id="prRules" placeholder="8 people&#10;Under $200 total&#10;My brother is vegetarian&#10;Done by 9 PM"></textarea></label>
+      <label class="field">What should the answer look like?<input type="text" id="prFmt" placeholder="A short plan with the cost of each part"></label>
+      <textarea class="prompt-out" id="prOut" readonly aria-label="Your prompt"></textarea>
+      <div class="row"><button class="btn primary" id="prCopy">Copy prompt</button><span class="small muted" id="prMsg" aria-live="polite"></span></div>
+      <table class="tally" id="prTally"></table>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<nav class="bar" aria-label="Slide navigation">
+  <div class="prog-line" id="progline"></div>
+  <button class="btn" id="prev">← Back</button>
+  <span id="count"></span>
+  <button class="btn primary" id="next">Next →</button>
+</nav>
+
+<div id="a11y-status" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+"use strict";
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs = {}, parent) { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function rng(seed) { let s = (seed >>> 0) || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const pct = p => Math.round(p * 100) + "%";
+function renderBars(el, items, max) {
+  max = max || Math.max(...items.map(i => i.p), 0.0001);
+  el.innerHTML = items.map(it => `<div class="barrow ${it.cls || ""}"><span class="bl">${esc(it.label)}</span><span class="bt"><span class="bf" style="width:${Math.max(0.5, it.p / max * 100)}%"></span></span><span class="bv">${it.v != null ? it.v : pct(it.p)}</span></div>`).join("");
+}
+function setOn(buttons, active) { buttons.forEach(b => b.classList.toggle("on", b === active)); }
+function fitCanvas(cv) {
+  const w = cv.clientWidth || 400, h = cv.clientHeight || w, dpr = window.devicePixelRatio || 1;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); return { g, w, h };
+}
+function download(name, text) {
+  const blob = new Blob([text], { type: "text/html" }); const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+/* ---------- Deck navigation ---------- */
+const INIT = {}, SHOW = {}, HIDE = {};
+const slides = $$(".slide"); let cur = 0; const inited = new Set();
+function go(i) {
+  i = Math.max(0, Math.min(slides.length - 1, i));
+  const old = slides[cur].dataset.init; if (old && HIDE[old] && i !== cur) HIDE[old]();
+  slides[cur].classList.remove("active"); cur = i; slides[cur].classList.add("active");
+  $("#count").textContent = `${cur + 1} / ${slides.length}`;
+  { const h = slides[cur].querySelector("h1"), st = document.getElementById("a11y-status"); if (st) st.textContent = `Slide ${cur + 1} of ${slides.length}: ${h ? h.textContent.trim() : ""}`; }
+  $("#progline").style.width = `${(cur + 1) / slides.length * 100}%`;
+  $("#prev").disabled = cur === 0; $("#next").disabled = cur === slides.length - 1;
+  $("#deck").scrollTop = 0;
+  const id = slides[cur].dataset.init;
+  if (id && !inited.has(id) && INIT[id]) { inited.add(id); try { INIT[id](slides[cur]); } catch (e) { console.error(e); } }
+  if (id && SHOW[id]) SHOW[id]();
+  try { history.replaceState(null, "", "#" + (cur + 1)); } catch (e) {}
+}
+$("#prev").onclick = () => go(cur - 1);
+$("#next").onclick = () => go(cur + 1);
+document.addEventListener("keydown", e => {
+  if (e.target.closest && e.target.closest("input, textarea, select, [contenteditable]")) return;
+  if (e.key === " " && e.target.closest && e.target.closest("button, a")) return;
+  if (["ArrowRight", "PageDown", " "].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+  else if (["ArrowLeft", "PageUp"].includes(e.key)) { e.preventDefault(); go(cur - 1); }
+  else if (e.key === "Home") go(0);
+  else if (e.key === "End") go(slides.length - 1);
+});
+window.addEventListener("resize", () => { const id = slides[cur].dataset.init; if (id && SHOW[id]) SHOW[id](); });
+
+
+/* ---------- bat and ball ---------- */
+INIT.bat = () => {
+  const inp = $("#batIn"), msg = $("#batMsg");
+  function answer() {
+    const raw = inp.value.trim().replace(/[¢$c\s]|cents?/gi, "");
+    if (!raw) { msg.className = "reveal info"; msg.textContent = "Type a number first"; return; }
+    let v = parseFloat(raw);
+    if (!isFinite(v)) { msg.className = "reveal info"; msg.textContent = "Type a number of cents, like 25"; return; }
+    if (v > 0 && v < 1 && raw.includes(".")) v = Math.round(v * 100);
+    if (v === 10) { msg.className = "reveal bad"; msg.textContent = "Most people say 10, but then the bat is $1.10 and together they cost $1.20"; }
+    else if (v === 5) { msg.className = "reveal good"; msg.textContent = "Right, the ball is 5 cents and the bat is $1.05"; }
+    else { msg.className = "reveal bad"; msg.textContent = `Not quite, if the ball is ${v} cents then the bat is $${((v + 100) / 100).toFixed(2)} and together they cost $${((2 * v + 100) / 100).toFixed(2)}`; }
+    $("#batCheck").hidden = false;
+  }
+  $("#batGo").onclick = answer;
+  inp.addEventListener("keydown", e => { if (e.key === "Enter") answer(); });
+};
+
+/* ---------- passes per token ---------- */
+INIT.passes = () => {
+  const A = { toks: ["The", " ball", " costs", " 10", " cents", "."], ans: 3 };
+  const B = { toks: ["Ball", " =", " x", ".", " Bat", " =", " x", " +", " 1.00", ".", " Together", ":", " 2x", " +", " 1.00", " =", " 1.10", ".", " So", " 2x", " =", " 0.10", ",", " x", " =", " 0.05", ".", " The", " ball", " costs", " 5", " cents", "."], ans: 30 };
+  let timer = null;
+  function draw(L, n, tEl, pEl, cEl) {
+    tEl.innerHTML = L.toks.slice(0, n).map((t, i) => `<span class="tok${i === L.ans ? " ans" : ""}">${esc(t)}</span>`).join("");
+    pEl.innerHTML = L.toks.slice(0, n).map((t, i) => `<i class="${i === L.ans ? "ans" : ""}"></i>`).join("");
+    cEl.textContent = n > L.ans ? `Passes before the answer: ${L.ans}` : (n ? `Passes so far: ${n}` : "");
+  }
+  function reset() { clearInterval(timer); draw(A, 0, $("#passTa"), $("#passPa"), $("#passCa")); draw(B, 0, $("#passTb"), $("#passPb"), $("#passCb")); }
+  $("#passGo").onclick = () => {
+    reset(); let n = 0;
+    timer = setInterval(() => {
+      n++;
+      draw(A, Math.min(n, A.toks.length), $("#passTa"), $("#passPa"), $("#passCa"));
+      draw(B, Math.min(n, B.toks.length), $("#passTb"), $("#passPb"), $("#passCb"));
+      if (n >= B.toks.length) clearInterval(timer);
+    }, 170);
+  };
+  HIDE.passes = () => clearInterval(timer);
+  reset();
+};
+
+/* ---------- chain of thought ---------- */
+INIT.cot = el => {
+  const Q = "A café had 23 muffins. It sold 15, then baked 2 trays of 12. How many muffins does it have now?";
+  const V = [
+    { q: Q, a: `<p>The café has 20 muffins.</p>`, ok: false },
+    { q: Q + " Let's think step by step.", a: `<p>It started with 23 and sold 15, so 23 − 15 = 8 are left.</p><p>2 trays of 12 is 24 more muffins.</p><p>8 + 24 = 32, so the café has 32 muffins.</p>`, ok: true }
+  ];
+  const btns = $$("[data-cot]", el);
+  function show(i) {
+    setOn(btns, btns[i]);
+    const v = V[i];
+    $("#cotChat").innerHTML = `<div class="bubble user">${esc(v.q)}</div><div class="bubble ai">${v.a}<p class="${v.ok ? "ok" : "no"}">${v.ok ? "✓ Right" : "✗ Wrong, it's 32"}</p></div>`;
+    renderBars($("#cotBars"), [
+      { label: "Just the question", p: 0.177, v: "18%", cls: i === 0 ? "hl" : "" },
+      { label: "Step by step", p: 0.787, v: "79%", cls: i === 1 ? "hl" : "" }
+    ], 1);
+  }
+  btns.forEach((b, i) => b.onclick = () => show(i));
+  show(0);
+};
+
+/* ---------- attention to earlier steps ---------- */
+INIT.attn = () => {
+  const ST = ["Question: a bat and a ball cost $1.10 together. The bat costs $1.00 more than the ball.", "Call the price of the ball x.", "The bat costs $1.00 more, so the bat is x + 1.00.", "Together they cost 1.10, so x + x + 1.00 = 1.10.", "Take away 1.00 from both sides: 2x = 0.10.", "Divide by 2: x = 0.05.", "Check: 0.05 + 1.05 = 1.10. ✓", "The ball costs 5 cents."];
+  const ATT = { 1: [1], 2: [0.6, 0.4], 3: [0.5, 0.1, 0.4], 4: [0.1, 0, 0, 0.9], 5: [0, 0.1, 0, 0, 0.9], 6: [0.1, 0, 0.4, 0, 0, 0.5], 7: [0, 0.3, 0, 0, 0, 0.6, 0.1] };
+  const box = $("#attnSteps");
+  box.innerHTML = ST.map((s, i) => `<button data-i="${i}" ${i === 0 ? "disabled" : ""}><span class="n">${i === 0 ? "Q" : i}</span><span>${esc(s)}<span class="attbar" style="width:0"></span></span></button>`).join("");
+  const btns = $$("button", box);
+  function pick(i) {
+    const w = ATT[i];
+    btns.forEach((b, j) => {
+      b.classList.toggle("picked-good", j === i);
+      b.classList.toggle("after", j > i);
+      b.querySelector(".attbar").style.width = (j < i ? (w[j] || 0) * 100 : 0) + "%";
+    });
+    const top = w.indexOf(Math.max(...w));
+    $("#attnMsg").textContent = `Step ${i} looked mostly at ${top === 0 ? "the question" : "step " + top}`;
+  }
+  btns.forEach((b, i) => { if (i) b.onclick = () => pick(i); });
+  pick(4);
+};
+
+/* ---------- turning on thinking ---------- */
+INIT.think = el => {
+  const R = [
+    { lines: [], ans: "Yes, 3,599 is a prime number.", ok: false, toks: 0, secs: 1 },
+    { lines: ["It's odd, so 2 doesn't divide it.", "The digits add up to 26, so 3 doesn't divide it.", "It doesn't end in 0 or 5, so 5 doesn't divide it.", "7 × 514 = 3,598, so not 7.", "No small numbers divide it, so it's probably prime."], ans: "Yes, 3,599 looks like a prime number.", ok: false, toks: 220, secs: 4 },
+    { lines: ["It's odd, the digits add to 26, and it doesn't end in 0 or 5, so 2, 3 and 5 don't divide it.", "7 × 514 = 3,598, so not 7. Checking every prime up to 60 would take a while.", "Wait, 3,599 is one less than 3,600, and 3,600 is 60 × 60.", "A number one less than a square can be split up: 60 × 60 − 1 = 59 × 61.", "Check: 59 × 61 = 3,599. ✓ So it isn't prime."], ans: "No. 3,599 = 59 × 61, so it isn't prime.", ok: true, toks: 950, secs: 11 }
+  ];
+  let eff = 0, timer = null;
+  const btns = $$("[data-eff]", el);
+  btns.forEach((b, i) => b.onclick = () => { eff = i; setOn(btns, b); clearInterval(timer); $("#thinkOut").innerHTML = ""; $("#thinkStat").textContent = ""; });
+  $("#thinkGo").onclick = () => {
+    clearInterval(timer);
+    const r = R[eff], out = $("#thinkOut");
+    let k = 0;
+    const done = () => {
+      out.insertAdjacentHTML("beforeend", `<div class="bubble ai fadein">${esc(r.ans)}<p class="${r.ok ? "ok" : "no"}" style="margin-top:4px">${r.ok ? "✓ Right" : "✗ Wrong, 3,599 = 59 × 61"}</p></div>`);
+      $("#thinkStat").textContent = `Thinking tokens: ${r.toks} · Wait: about ${r.secs} ${r.secs === 1 ? "second" : "seconds"}`;
+    };
+    if (!r.lines.length) { out.innerHTML = ""; done(); return; }
+    out.innerHTML = `<div class="think"><div class="lbl">Thinking…</div><div id="thinkLines"></div></div>`;
+    timer = setInterval(() => {
+      if (k < r.lines.length) {
+        $("#thinkLines").insertAdjacentHTML("beforeend", `<p class="fadein">${esc(r.lines[k]).replace(/^Wait,/, '<span class="wait">Wait,</span>')}</p>`);
+        k++;
+        $("#thinkStat").textContent = `Thinking tokens: ${Math.round(r.toks * k / r.lines.length)}`;
+      } else { clearInterval(timer); $(".think .lbl", out).textContent = "Thinking"; done(); }
+    }, 650);
+  };
+  HIDE.think = () => clearInterval(timer);
+};
+
+/* ---------- moves in the thinking ---------- */
+INIT.moves = el => {
+  const T = [
+    ["plan", "I need two digits that add up to 11, and swapping them has to make the number 27 bigger"],
+    ["try", "Let me try 29. The digits add up to 11, and swapped it's 92"],
+    ["check", "92 − 29 = 63, not 27, so that's too big"],
+    ["back", "Wait, guessing could take a while. What does swapping the digits actually do?"],
+    ["try", "Swapping the digits changes the number by 9 times the difference between them. 27 ÷ 9 = 3, so the digits are 3 apart"],
+    ["try", "Two digits that add up to 11 and are 3 apart are 4 and 7. The number gets bigger when swapped, so the smaller digit goes first: 47"],
+    ["check", "4 + 7 = 11, and swapped it's 74. 74 − 47 = 27. ✓"]
+  ];
+  const btns = $$("[data-mv]", el);
+  function show(k) {
+    setOn(btns, btns.find(b => b.dataset.mv === k));
+    $("#mvThink").innerHTML = `<div class="lbl">Thinking</div>` + T.map(([t, s]) => `<p class="${k !== "all" && t === k ? "wait-line" : ""}${k !== "all" && t !== k ? " dim" : ""}">${esc(s)}</p>`).join("");
+  }
+  btns.forEach(b => b.onclick = () => show(b.dataset.mv));
+  show("all");
+};
+
+/* ---------- reinforcement learning ---------- */
+INIT.rl = () => {
+  const H = ["Answers right away", "Works it out", "Checks the answer", "Tries another way"];
+  let p, round, rand;
+  function reset() { p = [0.75, 0.25, 0.08, 0.08]; round = 0; rand = rng(7); $("#rlAtt").innerHTML = Array.from({ length: 8 }, (_, i) => `<div class="att"><span class="muted">Try ${i + 1}</span></div>`).join(""); draw(); }
+  function attempt() {
+    const quick = rand() < p[0];
+    const h = quick ? [true, false, false, false] : [false, true, rand() < p[2], rand() < p[3]];
+    const ps = quick ? 0.12 : 0.4 + (h[2] ? 0.3 : 0) + (h[3] ? 0.2 : 0);
+    return { h, ok: rand() < ps };
+  }
+  function train() {
+    const atts = Array.from({ length: 8 }, attempt);
+    const good = atts.filter(a => a.ok);
+    if (good.length && good.length < 8) {
+      for (const k of [0, 2, 3]) {
+        const fGood = good.filter(a => a.h[k]).length / good.length;
+        const fAll = atts.filter(a => a.h[k]).length / 8;
+        p[k] = Math.min(0.97, Math.max(0.03, p[k] + 0.5 * (fGood - fAll)));
+      }
+      p[1] = 1 - p[0];
+    }
+    round++;
+    return atts;
+  }
+  function draw(atts) {
+    if (atts) $("#rlAtt").innerHTML = atts.map((a, i) => `<div class="att ${a.ok ? "ok" : "no"}"><div class="res ${a.ok ? "ok" : "no"}">${a.ok ? "✓ 5¢" : "✗ " + (a.h[0] ? "10¢" : ["10¢", "15¢", "1¢"][i % 3])}</div>${a.h.map((on, k) => on ? `<div>${esc(H[k])}</div>` : "").join("")}</div>`).join("");
+    renderBars($("#rlBars"), H.map((h, k) => ({ label: h, p: p[k], cls: k === 0 ? "badbar" : "goodbar" })), 1);
+    $("#rlStat").textContent = round ? `Round ${round}` : "";
+  }
+  $("#rlOne").onclick = () => draw(train());
+  $("#rlMany").onclick = () => { let a; for (let i = 0; i < 20; i++) a = train(); draw(a); };
+  $("#rlReset").onclick = reset;
+  reset();
+};
+
+/* ---------- more thinking ---------- */
+INIT.effort = () => {
+  const R = [
+    { label: "GPT-4o, no thinking", p: 0.12, note: "Answering right away, it solves about 2 of the 15 problems" },
+    { label: "o1, thinking once", p: 0.74, note: "With thinking, it solves about 11 of the 15" },
+    { label: "o1, 64 tries, most common answer", p: 0.83, note: "With 64 tries and the most common answer, it solves about 12 of the 15" },
+    { label: "o1, 1,000 tries, best one picked", p: 0.93, note: "With 1,000 tries and another model picking the best one, it solves about 14 of the 15" }
+  ];
+  let n = 1;
+  function draw() {
+    renderBars($("#effBars"), R.slice(0, n).map((r, i) => ({ label: r.label, p: r.p, cls: i === n - 1 ? "hl" : "" })), 1);
+    $("#effNote").textContent = R[n - 1].note;
+    $("#effGo").disabled = n >= R.length;
+  }
+  $("#effGo").onclick = () => { n = Math.min(R.length, n + 1); draw(); };
+  $("#effReset").onclick = () => { n = 1; draw(); };
+  draw();
+};
+
+/* ---------- Saturday plan ---------- */
+INIT.plan = el => {
+  const RULES = ["Leaves after 9:30", "Post office before 12", "Pharmacy after 10", "Groceries last, so the ice cream goes straight home"];
+  const QUICK = ["9:30 Leave home", "9:40 Groceries", "10:10 Pharmacy", "10:40 Post office", "11:10 Home"];
+  const THINK = [
+    "The car is free at 9:30. Each drive is 10 minutes and each stop is 20.",
+    "There's ice cream, so groceries should be the last stop.",
+    "If I go to the pharmacy first, I get there at 9:40. <span class=\"wait\">Wait,</span> it doesn't open until 10.",
+    "So the post office goes first. I get there at 9:40 and I'm done at 10:00.",
+    "Then the pharmacy at 10:10, done at 10:30. Groceries at 10:40, done at 11:00. Home at 11:10.",
+    "Checking the rules: I leave at 9:30 ✓, post office before 12 ✓, pharmacy after 10 ✓, groceries last ✓."
+  ];
+  const FINAL = ["9:30 Leave home", "9:40 Post office", "10:10 Pharmacy", "10:40 Groceries", "11:10 Home"];
+  let mode = "quick", step = 0;
+  const btns = $$("[data-plan]", el);
+  function checks(res) {
+    $("#planChecks").innerHTML = RULES.map((r, i) => { const s = res ? res[i] : null; return `<li class="${s === 1 ? "pass" : s === 0 ? "fail" : ""}"><span class="mk">${s === 1 ? "✓" : s === 0 ? "✗" : "·"}</span><span>${esc(r)}</span></li>`; }).join("");
+  }
+  function draw() {
+    setOn(btns, btns[mode === "quick" ? 0 : 1]);
+    $("#planCtl").hidden = mode === "quick";
+    if (mode === "quick") {
+      $("#planOut").innerHTML = `<div class="bubble ai" style="max-width:100%"><ul class="plan">${QUICK.map(x => `<li>${x}</li>`).join("")}</ul></div>`;
+      checks([1, 1, 1, 0]);
+      return;
+    }
+    let h = `<div class="think"><div class="lbl">Thinking</div>${THINK.slice(0, step).map((t, i) => `<p class="${i === step - 1 ? "fadein" : ""}">${t}</p>`).join("") || `<p class="muted">Press "Next step".</p>`}</div>`;
+    if (step >= THINK.length) h += `<div class="bubble ai fadein" style="max-width:100%"><ul class="plan">${FINAL.map(x => `<li>${x}</li>`).join("")}</ul></div>`;
+    $("#planOut").innerHTML = h;
+    $("#planNext").disabled = step >= THINK.length;
+    checks(step >= THINK.length ? [1, 1, 1, 1] : null);
+  }
+  btns.forEach(b => b.onclick = () => { mode = b.dataset.plan; draw(); });
+  $("#planNext").onclick = () => { step = Math.min(THINK.length, step + 1); draw(); };
+  $("#planReset").onclick = () => { step = 0; draw(); };
+  draw();
+};
+
+/* ---------- wrong step ---------- */
+INIT.wrong = () => {
+  const ST = ["The bill is $84.", "A 20% tip is 84 × 0.20 = $16.80.", "The total is 84 + 16.80 = $110.80.", "Split 4 ways, that's 110.80 ÷ 4 = $27.70.", "Each person pays $27.70."];
+  const BAD = 2, box = $("#wrongSteps");
+  box.innerHTML = ST.map((s, i) => `<button data-i="${i}"><span class="n">${i + 1}</span><span>${esc(s)}</span></button>`).join("");
+  $$("button", box).forEach(b => b.onclick = () => {
+    const i = +b.dataset.i, m = $("#wrongMsg");
+    $$("button", box).forEach(x => x.classList.remove("picked-bad", "picked-good", "after"));
+    if (i === BAD) {
+      b.classList.add("picked-good");
+      $$("button", box).forEach((x, j) => { if (j > BAD) x.classList.add("after"); });
+      m.className = "reveal good";
+      m.textContent = "Right, 84 + 16.80 is 100.80, so each person should pay $25.20. Every step after it used the wrong total";
+    } else {
+      b.classList.add("picked-bad");
+      m.className = "reveal bad";
+      m.textContent = i < BAD ? "This step is right, keep checking" : "The math here is right, but it starts from a mistake in an earlier step";
+    }
+  });
+};
+
+/* ---------- hint ---------- */
+INIT.hint = el => {
+  const Q = "Which planet has the most known moons? (A) Jupiter (B) Saturn (C) Uranus (D) Neptune";
+  const V = [
+    { q: esc(Q), t: "<p>Jupiter and Saturn both have a lot of moons. Many small moons have been found around Saturn in the last few years, so Saturn has more.</p>", a: "(B) Saturn", m: "" },
+    { q: esc(Q) + `<br><span class="wait small">A professor thinks the answer is (A).</span>`, t: "<p>Jupiter is the biggest planet, and its gravity holds on to a lot of moons. It's known for having a very large number of them.</p>", a: "(A) Jupiter", m: "The note changed the answer, but the thinking never mentions it" }
+  ];
+  const btns = $$("[data-hint]", el);
+  function show(i) {
+    setOn(btns, btns[i]);
+    $("#hintChat").innerHTML = `<div class="bubble user">${V[i].q}</div><div class="think"><div class="lbl">Thinking</div>${V[i].t}</div><div class="bubble ai"><b>${V[i].a}</b></div>`;
+    $("#hintMsg").textContent = V[i].m;
+  }
+  btns.forEach((b, i) => b.onclick = () => show(i));
+  show(0);
+};
+
+/* ---------- model sizes ---------- */
+INIT.sizes = () => {
+  const S = [
+    { n: "Small", ex: "Haiku, Flash-Lite", hard: 0.45, speed: 0.95, price: 6, info: "Good for quick questions and short writing when you want a fast answer" },
+    { n: "Medium", ex: "Sonnet, Flash", hard: 0.7, speed: 0.7, price: 15, info: "Good for most everyday work like writing, summarizing and coding" },
+    { n: "Large", ex: "Opus, Pro", hard: 0.92, speed: 0.4, price: 30, info: "Good for the hardest problems, but it's the slowest and costs the most" }
+  ];
+  const box = $("#sizeCards");
+  box.innerHTML = S.map((s, i) => `<button class="sizecard" data-i="${i}"><b>${s.n}</b><span>${s.ex}</span></button>`).join("");
+  const btns = $$("button", box);
+  function show(i) {
+    btns.forEach((b, j) => b.classList.toggle("on", i === j));
+    const s = S[i];
+    renderBars($("#sizeBars"), [
+      { label: "Handles hard tasks", p: s.hard, v: "", cls: "hl" },
+      { label: "Speed", p: s.speed, v: "" },
+      { label: "Cost", p: s.price / 30, v: "" }
+    ], 1);
+    $("#sizeInfo").textContent = s.info;
+  }
+  btns.forEach((b, i) => b.onclick = () => show(i));
+  show(1);
+};
+
+/* ---------- size x thinking ---------- */
+INIT.grid = () => {
+  const C = {
+    "s0": ["Small, thinking off", "The fastest and cheapest, good for quick facts and simple rewording"],
+    "s1": ["Small, thinking on", "Cheap and works things out first, good for math and simple plans"],
+    "l0": ["Large, thinking off", "Knows a lot and answers right away, good for explaining a topic or writing"],
+    "l1": ["Large, thinking on", "Slowest and most expensive but the strongest, good for hard problems where you need the right answer"]
+  };
+  const t = $("#gridT");
+  t.innerHTML = `<tr><th></th><th>Thinking off</th><th>Thinking on</th></tr>` +
+    ["s", "l"].map(r => `<tr><th>${r === "s" ? "Small model" : "Large model"}</th>${[0, 1].map(c => `<td><button class="cell" data-k="${r}${c}">${r === "s" ? (c ? "Slower, cheap" : "Fastest, cheapest") : (c ? "Slowest, strongest" : "Fast, knows more")}</button></td>`).join("")}</tr>`).join("");
+  const btns = $$("button.cell", t);
+  function show(k) { btns.forEach(b => b.classList.toggle("on", b.dataset.k === k)); $("#gridInfo").innerHTML = `<b>${C[k][0]}:</b> ${C[k][1]}`; }
+  btns.forEach(b => b.onclick = () => show(b.dataset.k));
+  show("s1");
+};
+
+/* ---------- router ---------- */
+INIT.moe = () => {
+  const grid = $("#moeGrid");
+  grid.innerHTML = Array.from({ length: 8 }, (_, i) => `<div class="ex" id="moeE${i}"><b>${i + 1}</b>Expert</div>`).join("");
+  let timer = null;
+  function hash(s, k) { let h = 2166136261 ^ k; for (const c of s.toLowerCase()) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function pick(t) { const a = hash(t, 1) % 8; let b = hash(t, 7) % 7; if (b >= a) b++; return [a, b]; }
+  function run() {
+    clearInterval(timer);
+    const text = ($("#moeIn").value || "").trim() || "Type something here";
+    const toks = (text.match(/\s*[^\s.,!?;:]+|[.,!?;:]/g) || []).slice(0, 24);
+    $("#moeToks").innerHTML = toks.map(t => `<span class="tok">${esc(t.trim())}</span>`).join("");
+    let i = 0;
+    const step = () => {
+      $$(".ex", grid).forEach(e => e.classList.remove("lit"));
+      $$("#moeToks .tok").forEach((e, j) => { e.classList.toggle("now", j === i); e.classList.toggle("done", j < i); });
+      if (i >= toks.length) { clearInterval(timer); $("#moeRouter").textContent = "Router"; $("#moeStat").textContent = "Every token only used 2 of the 8 experts"; return; }
+      const [a, b] = pick(toks[i].trim());
+      $("#moeE" + a).classList.add("lit"); $("#moeE" + b).classList.add("lit");
+      $("#moeRouter").textContent = `Router: "${toks[i].trim()}" goes to experts ${Math.min(a, b) + 1} and ${Math.max(a, b) + 1}`;
+      $("#moeStat").textContent = `Token ${i + 1} of ${toks.length}`;
+      i++;
+    };
+    step(); timer = setInterval(step, 700);
+  }
+  $("#moeGo").onclick = run;
+  $("#moeIn").addEventListener("keydown", e => { if (e.key === "Enter") run(); });
+  HIDE.moe = () => clearInterval(timer);
+};
+
+/* ---------- total vs active ---------- */
+INIT.weights = () => {
+  const M = [
+    { n: "Mixtral 8x7B", by: "Mistral, 2023", all: 47, act: 13, info: "8 experts, and each token uses 2 of them" },
+    { n: "gpt-oss-120b", by: "OpenAI, 2025", all: 117, act: 5.1, info: "128 experts, and each token uses 4 of them" },
+    { n: "Llama 4 Maverick", by: "Meta, 2025", all: 400, act: 17, info: "129 experts, and each token uses 2 of them" },
+    { n: "DeepSeek-V3", by: "DeepSeek, 2024", all: 671, act: 37, info: "257 experts, and each token uses 9 of them" }
+  ];
+  const box = $("#wBars");
+  box.innerHTML = M.map((m, i) => `<button class="pair" data-i="${i}" aria-label="${esc(m.n)}: ${m.all} billion weights, ${m.act} billion used for each token"><span class="nm"><b>${esc(m.n)}</b><span>${esc(m.by)}</span></span><span class="tr"><span class="all" style="width:${m.all / 671 * 100}%"></span><span class="act" style="width:${Math.max(0.6, m.act / 671 * 100)}%"></span></span></button>`).join("");
+  const btns = $$(".pair", box);
+  function show(i) { btns.forEach((b, j) => b.classList.toggle("on", i === j)); $("#wInfo").textContent = M[i].info; }
+  btns.forEach((b, i) => b.onclick = () => show(i));
+  show(3);
+};
+
+/* ---------- distillation ---------- */
+INIT.distill = el => {
+  const Q = "A shirt costs $40. It's 25% off, and then there's 8% sales tax on the sale price. What do I pay?";
+  const V = [
+    `<div class="bubble ai">You pay $33.20.<p class="no" style="margin-top:4px">✗ Wrong, the answer is $32.40</p></div>`,
+    `<div class="think"><div class="lbl">Thinking</div><p>25% of $40 is $10, so the sale price is $30.</p><p>Tax is 8% of $30, which is $2.40.</p><p>$30 + $2.40 = $32.40.</p></div><div class="bubble ai">You pay $32.40.<p class="ok" style="margin-top:4px">✓ Right</p></div>`
+  ];
+  const btns = $$("[data-dis]", el);
+  function show(i) { setOn(btns, btns[i]); $("#disChat").innerHTML = `<div class="bubble user">${esc(Q)}</div>` + V[i]; }
+  btns.forEach((b, i) => b.onclick = () => show(i));
+  show(0);
+};
+
+/* ---------- path of a message ---------- */
+INIT.path = el => {
+  const P = [
+    [["Auto picks a model", "This is a simple fact, so it picks a small model"], ["Thinking", "Off, since there's nothing to work out"], ["Inside the model", "Each token goes to a few experts"], ["Answer", "\"Lima\" in about a second"]],
+    [["Auto picks a model", "Bigger models usually write better, so it picks a medium or large one"], ["Thinking", "Off or very short, since there are no rules to check"], ["Inside the model", "Each token goes to a few experts"], ["Answer", "A few friendly sentences, in a few seconds"]],
+    [["Auto picks a model", "There's a budget and an allergy to keep track of, so it turns thinking on"], ["Thinking", "On, while it adds up prices and checks each meal"], ["Inside the model", "Every token, thinking or answer, goes to a few experts"], ["Answer", "A meal plan with prices, after you wait 10 to 30 seconds"]]
+  ];
+  const btns = $$("[data-q]", el);
+  function show(i) {
+    setOn(btns, btns[i]);
+    $("#pathList").innerHTML = P[i].map(([h, t]) => `<li class="fadein"><b>${esc(h)}</b><span>${esc(t)}</span></li>`).join("");
+  }
+  btns.forEach((b, i) => b.onclick = () => show(i));
+  show(0);
+};
+
+/* ---------- off or on ---------- */
+INIT.sort = () => {
+  const ITEMS = [
+    ["What's the capital of Peru?", "q", "it's a common fact, so there's nothing to work out"],
+    ["Make this text message sound friendlier", "q", "this is rewording, with no steps to check"],
+    ["Compare two phone plans over two years", "t", "there are lots of numbers to keep track of at once"],
+    ["Plan five dinners under $60 with a nut allergy", "t", "several rules all have to be true at the same time"],
+    ["Is 3,599 a prime number?", "t", "it's 59 × 61, and without thinking the model usually guesses"],
+    ["Give me 10 names for a bake sale", "q", "there's no wrong answer, so a fast reply is better"],
+    ["Is there anything unusual in my lease?", "t", "it has to read every part carefully, and missing something could cost you"],
+    ["How do you say \"thank you\" in Spanish?", "q", "it's short and the model has seen it many times"]
+  ];
+  const pick = new Array(ITEMS.length).fill(null);
+  function draw(checked) {
+    $("#sortList").innerHTML = ITEMS.map((it, i) => {
+      const cls = checked && pick[i] ? (pick[i] === it[1] ? "right" : "wrong") : "";
+      return `<div class="sortrow ${cls}"><span>${esc(it[0])}</span><span class="seg" role="group" aria-label="Thinking off or on"><button data-i="${i}" data-v="q" class="${pick[i] === "q" ? "on" : ""}">Off</button><button data-i="${i}" data-v="t" class="${pick[i] === "t" ? "on" : ""}">On</button></span><span class="why">${checked ? (it[1] === "q" ? "Off, " : "On, ") + esc(it[2]) : ""}</span></div>`;
+    }).join("");
+    $$("#sortList button").forEach(b => b.onclick = () => { pick[+b.dataset.i] = b.dataset.v; draw(false); $("#sortScore").textContent = ""; });
+  }
+  $("#sortCheck").onclick = () => { draw(true); $("#sortScore").textContent = `${ITEMS.filter((it, i) => pick[i] === it[1]).length} of ${ITEMS.length}`; };
+  $("#sortReset").onclick = () => { pick.fill(null); $("#sortScore").textContent = ""; draw(false); };
+  draw(false);
+};
+
+/* ---------- prompt builder ---------- */
+INIT.prompt = () => {
+  const st = {};
+  function rules() { return $("#prRules").value.split("\n").map(s => s.replace(/^\s*(?:[-*•]|\d+[.)])\s+/, "").trim()).filter(Boolean); }
+  function build() {
+    const g = $("#prGoal").value.trim(), r = rules(), f = $("#prFmt").value.trim();
+    let t = `Help me with this: ${g || "[what you're trying to figure out]"}\n\nRules:\n`;
+    t += (r.length ? r : ["[your rules, one per line]"]).map(x => `- ${x}`).join("\n");
+    t += `\n\nWhat I want back: ${f || "[what the answer should look like]"}`;
+    t += `\n\nIf something is missing, ask me first. When you're done, check your answer against each rule.`;
+    $("#prOut").value = t;
+    tally(r);
+  }
+  function tally(r) {
+    const tb = $("#prTally");
+    if (!r.length) { tb.innerHTML = ""; return; }
+    tb.innerHTML = `<tr><th>Rule</th><th class="c">Thinking off</th><th class="c">Thinking on</th></tr>` +
+      r.map((x, i) => `<tr><td>${esc(x)}</td><td class="c"><input type="checkbox" data-k="q" data-i="${i}" aria-label="Thinking off follows: ${esc(x)}" ${st["q|" + x] ? "checked" : ""}></td><td class="c"><input type="checkbox" data-k="t" data-i="${i}" aria-label="Thinking on follows: ${esc(x)}" ${st["t|" + x] ? "checked" : ""}></td></tr>`).join("") +
+      `<tr><th>Followed</th><th class="c" id="prQ"></th><th class="c" id="prT"></th></tr>`;
+    $$("input", tb).forEach(c => c.onchange = () => { st[c.dataset.k + "|" + r[+c.dataset.i]] = c.checked; count(r); });
+    count(r);
+  }
+  function count(r) {
+    $("#prQ").textContent = `${r.filter(x => st["q|" + x]).length} / ${r.length}`;
+    $("#prT").textContent = `${r.filter(x => st["t|" + x]).length} / ${r.length}`;
+  }
+  ["#prGoal", "#prRules", "#prFmt"].forEach(s => $(s).addEventListener("input", build));
+  $("#prCopy").onclick = async () => {
+    const t = $("#prOut").value;
+    try { await navigator.clipboard.writeText(t); $("#prMsg").textContent = "Copied"; }
+    catch (e) { $("#prOut").select(); document.execCommand && document.execCommand("copy"); $("#prMsg").textContent = "Copied"; }
+  };
+  build();
+};
+
+/* ---------- adaptive thinking ---------- */
+INIT.adaptive = el => {
+  const Q = [
+    { t: 0, info: "No thinking at all, it answers right away" },
+    { t: 60, info: "A quick look before answering" },
+    { t: 950, info: "A lot of thinking, because it has to work it out" }
+  ];
+  const btns = $$("[data-ad]", el);
+  function show(i) {
+    setOn(btns, btns[i]);
+    renderBars($("#adBars"), [{ label: "Thinking tokens", p: Q[i].t / 1000, v: String(Q[i].t), cls: "hl" }], 1);
+    $("#adInfo").textContent = Q[i].info;
+  }
+  btns.forEach((b, i) => b.onclick = () => show(i));
+  show(0);
+};
+
+/* ---------- thinking with tools ---------- */
+INIT.tools = () => {
+  const S = [
+    ["Think", "I need the train fare, how far the drive is, the price of gas, and what parking costs in San Francisco."],
+    ["Search", "train fare San Jose to San Francisco", "About $8 each way"],
+    ["Search", "gas price San Jose", "About $4.80 a gallon"],
+    ["Think", "The drive is about 50 miles each way, so 100 miles total. A car that gets 30 miles a gallon uses about 3.3 gallons."],
+    ["Run code", "3.3 × 4.80 + 30 for parking", "45.84"],
+    ["Think", "Driving costs about $46 and the train costs about $16 for the round trip, so the train is cheaper."],
+    ["Answer", "The train is cheaper, about $16 round trip compared to about $46 to drive and park."]
+  ];
+  let n = 0;
+  function draw() {
+    $("#toolSteps").innerHTML = S.slice(0, n).map(([k, a, b], i) => {
+      const cls = k === "Think" ? "tthink" : k === "Answer" ? "tans" : "ttool";
+      const body = b ? `<span class="mono">${esc(a)}</span><span class="tres">→ ${esc(b)}</span>` : `<span>${esc(a)}</span>`;
+      return `<div class="tstep ${cls}${i === n - 1 ? " fadein" : ""}"><span class="tlbl">${esc(k)}</span>${body}</div>`;
+    }).join("") || `<p class="small muted" style="margin:0">Press Next step</p>`;
+    $("#toolNext").disabled = n >= S.length;
+  }
+  $("#toolNext").onclick = () => { n = Math.min(S.length, n + 1); draw(); };
+  $("#toolReset").onclick = () => { n = 0; draw(); };
+  draw();
+};
+
+/* ---------- task length ---------- */
+INIT.horizon = () => {
+  const M = [
+    { n: "GPT-4o", y: "2024", m: 7, label: "7 minutes", info: "About 7 minutes of work" },
+    { n: "o1", y: "2024", m: 39, label: "40 minutes", info: "About 40 minutes, OpenAI's first reasoning model" },
+    { n: "GPT-5", y: "2025", m: 203, label: "3.4 hours", info: "About 3 and a half hours" },
+    { n: "Claude Opus 4.6", y: "2026", m: 719, label: "12 hours", info: "About 12 hours, more than a full workday for a person" }
+  ];
+  const box = $("#hzBars");
+  box.innerHTML = M.map((m, i) => `<button class="pair" data-i="${i}" aria-label="${esc(m.n)}, ${m.y}: ${m.label}"><span class="nm"><b>${esc(m.n)}</b><span>${m.y}</span></span><span class="tr"><span class="act" style="width:${Math.max(0.8, m.m / 719 * 100)}%"></span></span></button>`).join("");
+  const btns = $$(".pair", box);
+  function show(i) { btns.forEach((b, j) => b.classList.toggle("on", i === j)); $("#hzInfo").textContent = `${M[i].n}: ${M[i].info}`; }
+  btns.forEach((b, i) => b.onclick = () => show(i));
+  show(3);
+};
+
+/* ---------- start ---------- */
+window.addEventListener("hashchange", () => { const n = parseInt(location.hash.slice(1), 10); if (Number.isFinite(n) && n - 1 !== cur) go(n - 1); });
+const startHash = parseInt((location.hash || "").slice(1), 10);
+slides[0].classList.add("active");
+go(Number.isFinite(startHash) ? startHash - 1 : 0);
+</script>
+<script>
+/* Accessibility: tell screen readers which option button is currently selected */
+(function () {
+  const keyOf = b => Object.keys(b.dataset).filter(k => k !== "step").sort().join(",") + "|" + (b.classList.contains("tog") ? "tog" : "");
+  const mark = b => { const v = b.classList.contains("on") ? "true" : "false"; if (b.getAttribute("aria-pressed") !== v) b.setAttribute("aria-pressed", v); };
+  function refresh() {
+    document.querySelectorAll("button.on").forEach(on => {
+      const k = keyOf(on);
+      on.parentElement.querySelectorAll(":scope > button").forEach(b => { if (keyOf(b) === k) mark(b); });
+    });
+    document.querySelectorAll("button[aria-pressed]").forEach(mark);
+  }
+  let queued = false;
+  new MutationObserver(() => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; refresh(); }); } })
+    .observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+  refresh();
+})();
+</script>
+<script>
+/* Stop double-tap zoom on phones, keeping fast taps working */
+(function () {
+  let last = 0;
+  document.addEventListener("touchend", e => {
+    const now = Date.now();
+    if (now - last < 350 && !e.target.closest("input[type=text], textarea, select")) {
+      e.preventDefault();
+      const t = e.target.closest("button, a, label, input, tr[data-i], [role=button]");
+      if (t) t.click();
+    }
+    last = now;
+  }, { passive: false });
+})();
+</script>
+
+</body>
+</html>
